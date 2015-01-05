@@ -1,0 +1,70 @@
+********************************************************************************
+  Installation instructions for:
+********************************************************************************
+
+  Wordpress + Woocommerce plugin
+
+********************************************************************************
+
+-- Requirements ----------------------------------------------------------------
+
+PHP 5.0+
+Wordpress 3.5.1
+Woocommerce 2.0.5
+
+-- Installation ----------------------------------------------------------------
+
+1. Install Wordpress 3.5.1
+
+2. Install Woocommerce, go to your Wordpress Dashboard (admin login)
+   and click on 'Plugins'. Then click 'Add new' and search for 'Woocommerce'.
+   It will probably listed first as "WooCommerce - excelling eCommerce", click
+   on 'Install now'.
+
+3. Unzip the TargetPay plugin
+
+4. Drag the folder 'targetpay' to the /wp-content/plugins
+   of your Wordpress installation
+
+5. Go back to 'Plugins' and click 'Activate' below 'TargetPay for Woocommerce'
+
+6. Now go to Woocommerce > Settings > Payment gateways
+
+7. If you don't have one, you can get a free TargetPay account on
+   https://www.targetpay.com/
+
+   Use the promotional code YM3R2A to get a discount on the iDEAL costs.
+
+   iDEAL will then cost only 44 cents regardless of the number of transactions.
+   Furthermore, there are not set-up costs, monthly fees, payout fees, etc.
+
+8. Open the Tab 'TargetPay' and enter your layoutcode there.
+   Also, tabs for 'iDEAL', 'Mister Cash' and 'Sofort Banking' have been added.
+   Open these too and activate the payment methods you like to include.
+
+9. You're good to go!
+
+   Note: you can check the 'Test mode' box to see if the payments work.
+   Payments will be marked OK even if the payment was cancelled.
+   Needless to say, but uncheck it again after testing, otherwise all your
+   merchandise will be offered for free...
+
+-- Contact ---------------------------------------------------------------------
+
+Distribution:	www.idealplugins.nl
+
+				Check here for more webshops plugins.
+                Missing anything? Mail to: tips@idealplugins.nl
+
+Author:			Yellow Melon B.V.
+				Kleine Koppel 52
+            	3812 PH  AMERSFOORT
+            	www.yellowmelon.nl
+
+                The software is provided 'as is'.
+                No (free) support is available.
+
+-- Released under GPLv3 --------------------------------------------------------
+
+Released under GPLv3, see LICENSE.TXT
+

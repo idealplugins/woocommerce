@@ -172,7 +172,6 @@ function init_targetpay_class()
                         Do not update cart for failure to prevent conflicting multiple payment attempts (failed vs. completed)
 
                     $order->add_order_note(__('Payment error:', 'woocommerce'));
-                    $woocommerce->add_error(__('Payment error:',  'woothemes') . $targetPay->getErrorMessage());
                     $order->cancel_order();
                     */
                     echo "Not paid, cart not updated (version 14/1/2015): " . $targetPay->getErrorMessage(). " - ";
@@ -267,7 +266,8 @@ function init_targetpay_class()
 
             if ($order->order_total > $this->maxAmount) {
                 $message = "Het totaalbedrag is hoger dan het maximum van ".$this->maxAmount . " euro voor ".$this->payMethodName;
-                $woocommerce->add_error($message);
+                // $woocommerce->add_error($message); -> changed in 2.2
+                wc_add_notice($message, $notice_type ='error');
                 $order->add_order_note($message);
                 return false;
             } 
@@ -286,7 +286,8 @@ function init_targetpay_class()
 
             if (!$url) {
                 $message = $targetPay->getErrorMessage();
-                $woocommerce->add_error(__('Payment error:', 'woothemes') . ' ' . $message);
+                // $woocommerce->add_error(__('Payment error:', 'woothemes') . ' ' . $message); -> changed in 2.2
+                wc_add_notice($message, $notice_type ='error');
                 $order->add_order_note("Payment could not be started: {$message}");
                 return false;
             } else {

@@ -268,7 +268,7 @@ function init_targetpay_class()
 
             $targetPay = new TargetPayCore ($this->payMethodId, $this->parentSettings["rtlo"],  "ef96dc7014cfff1a73a743e6dd8cb692", "nl", ($this->parentSettings["testmode"]=="yes"));
             $targetPay->setAmount (round ($order->order_total*100));
-            $targetPay->setDescription ('Order Id #'.$order->id);
+            $targetPay->setDescription ('Order '.$order->get_order_number()); // $order->id
             $targetPay->setReturnUrl ($this->get_return_url($order));
             $targetPay->setCancelUrl ($order->get_cancel_order_url());
 

@@ -157,29 +157,23 @@ function init_targetpay_class()
             $order = new WC_Order( $order_id );
 
             if ($order == null) {
-                echo "Order ".htmlentities($order_id)." not found - ";
+                echo "Order ".htmlentities($order_id)." not found... ";
                 return;
             }
 
             if ($order->status != 'completed') {
                 if ($result) {
-                    echo "Was not completed, is now completed - ";
+                    echo "Paid... ";
                     $order->add_order_note( __( 'Payment completed', 'woocommerce' ) );
                     $order->payment_complete();
                 } else { 
-                    /* 
-                        Changed [14-01-2015]:
-                        Do not update cart for failure to prevent conflicting multiple payment attempts (failed vs. completed)
-
-                    $order->add_order_note(__('Payment error:', 'woocommerce'));
-                    $order->cancel_order();
-                    */
-                    echo "Not paid, cart not updated (version 14/1/2015): " . $targetPay->getErrorMessage(). " - ";
+                    echo "Not paid " . $targetPay->getErrorMessage(). "... ";
                 }
             } else {
-                echo "Already completed - ";
+                echo "Already completed, skipped... ";
             }
 
+            echo "(Woocommerce, 23-04-2015)";
             @ob_flush();
         }
     }

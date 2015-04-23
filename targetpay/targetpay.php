@@ -173,7 +173,7 @@ function init_targetpay_class()
                 echo "Already completed, skipped... ";
             }
 
-            echo "(Woocommerce, 23-04-2015)";
+            echo "(Woocommerce, 23-04-2015) ";
             @ob_flush();
         }
     }

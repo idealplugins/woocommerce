@@ -24,7 +24,7 @@ class TargetPayCore
 	{
     // Constants
 
-	const     MIN_AMOUNT			= 84;
+	const     MIN_AMOUNT			= 1;
 
     const     ERR_NO_AMOUNT			= "Geen bedrag meegegeven | No amount given";
     const	  ERR_NO_DESCRIPTION	= "Geen omschrijving meegegeven | No description given";
@@ -39,7 +39,7 @@ class TargetPayCore
 
     // Constant array's
 
-    protected $paymentOptions		= array("AUTO", "IDE", "MRC", "DEB", "AFT", "WAL", "CC");		
+    protected $paymentOptions		= array("AUTO", "IDE", "MRC", "DEB", "WAL", "CC");		
     																			/*  If payMethod is set to 'AUTO' it will decided on the value of bankId
     																			    Then, when requested the bankId list will be filled with
 
@@ -48,12 +48,11 @@ class TargetPayCore
 																				    c) 'DEB' + countrycode for Sofort Banking, e.g. DEB49 for Germany
                                                                                 */
 
-    protected $minimumAmounts		= array("AUTO" => 84, "IDE" => 84, "MRC" => 49, "DEB" => 10, "AFT" => 1, "WAL" => 10, "CC" => 100);
+    protected $minimumAmounts		= array("AUTO" => 84, "IDE" => 1, "MRC" => 49, "DEB" => 10, "WAL" => 10, "CC" => 100);
 
     protected $checkAPIs			= array("IDE" => "https://www.targetpay.com/ideal/check",
     										"MRC" => "https://www.targetpay.com/mrcash/check",
                                             "DEB" => "https://www.targetpay.com/directebanking/check",
-                                            "AFT" => "https://www.targetpay.com/afterpay/check",
                                             "WAL" => "https://www.targetpay.com/paysafecard/check",
                                             "CC" => "https://www.targetpay.com/creditcard_atos/check"
                                             );
@@ -195,7 +194,6 @@ class TargetPayCore
         		"description=".urlencode($this->description)."&".
                 "currency=".urlencode($this->currency)."&".
                 (($this->payMethod=="IDE") ? "ver=2&language=nl&" : "").
-                (($this->payMethod=="AFT") ? "ver=2&language=nl&" : "").
                 (($this->payMethod=="MRC") ? "lang=".urlencode($this->getLanguage(array("NL","FR","EN"),"NL"))."&" : "").
                 (($this->payMethod=="DEB") ? "type=1&country=".urlencode($this->countryId)."&lang=".urlencode($this->getLanguage(array("NL","EN","DE"),"DE"))."&" : "").
                 "userip=".urlencode($_SERVER["REMOTE_ADDR"])."&".
@@ -225,10 +223,6 @@ class TargetPayCore
 	 *	@param	string	$transactionId		Transaction ID to check
 	 *	
 	 *	Returns true if payment successfull (or testmode) and false if not
-	 *	
-	 *	After payment:
-	 *	- Read the errors with getErrorMessage()
-	 *	- Get user information using getConsumerInfo()
 	 *	
      */
 
@@ -346,11 +340,6 @@ class TargetPayCore
 	    	$bankId = strtoupper ($bankId);
 	    	if (substr($bankId,0,3)=="IDE") {
 	        	$this->payMethod = "IDE";
-	            $this->bankId = substr($bankId, 3, 4);
-	            return true;
-	        } else
-	        if (substr($bankId,0,3)=="AFT") {
-	        	$this->payMethod = "AFT";
 	            $this->bankId = substr($bankId, 3, 4);
 	            return true;
 	        } else

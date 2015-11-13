@@ -26,6 +26,30 @@ if (!class_exists('TargetPayCore')) {
 
 add_action( 'plugins_loaded', 'init_targetpay_class', 0);
 
+
+
+
+function detect_plugin_activation() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . "woocommerce_TargetPay_Sales"; 
+	$charset_collate = $wpdb->get_charset_collate();
+
+	$sql = "CREATE TABLE IF NOT EXISTS " . $table_name . " (
+			`id` int(11) NOT NULL AUTO_INCREMENT,
+			`cart_id` varchar(11) NOT NULL DEFAULT '0',
+			`rtlo` int(11) NOT NULL,
+			`paymethod` varchar(8) NOT NULL DEFAULT 'IDE',
+			`transaction_id` varchar(255) NOT NULL,
+			UNIQUE KEY id (id),
+			KEY `cart_id` (`cart_id`),
+			KEY `transaction_id` (`transaction_id`)
+		) $charset_collate;";
+
+	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+	dbDelta( $sql );
+}
+add_action( 'activated_plugin', 'detect_plugin_activation');
+
 function init_targetpay_class() 
 {
 
@@ -131,7 +155,6 @@ function init_targetpay_class()
             $methods[] = 'WC_Gateway_TargetPay_PaymentMethod_iDEAL';
             $methods[] = 'WC_Gateway_TargetPay_PaymentMethod_MisterCash';
             $methods[] = 'WC_Gateway_TargetPay_PaymentMethod_Sofort';
-            $methods[] = 'WC_Gateway_TargetPay_PaymentMethod_PayByInvoice';
             $methods[] = 'WC_Gateway_TargetPay_PaymentMethod_Paysafecard';
             $methods[] = 'WC_Gateway_TargetPay_PaymentMethod_Creditcard';
             return $methods;
@@ -151,9 +174,19 @@ function init_targetpay_class()
 
             list ($payMethod, $order_id) = explode("-", $_REQUEST["tx"], 2);
 
-            $targetPay = new TargetPayCore ($payMethod, $_REQUEST["rtlo"], "ef96dc7014cfff1a73a743e6dd8cb692", "nl", ($this->settings["testmode"]=="yes") ? 1 : 0);
-            $result = $targetPay->checkPayment ($_REQUEST["trxid"]);
 
+			global $wpdb;
+			$table_name = $wpdb->prefix . "woocommerce_TargetPay_Sales"; 
+			$sql = "SELECT * FROM ".$table_name ." WHERE `cart_id` = '".$order_id."' AND `transaction_id` = '".$_REQUEST['trxid']."'";
+			$sale = $wpdb->get_results($sql, OBJECT);
+			if(count($sale) == 0) {
+				echo "sale not found";
+				return;
+			}
+			$sale = $sale[0];
+
+            $targetPay = new TargetPayCore ($sale->paymethod, $sale->rtlo, "ef96dc7014cfff1a73a743e6dd8cb692", "nl", ($this->settings["testmode"]=="yes") ? 1 : 0);
+            $result = $targetPay->checkPayment($sale->transaction_id);
             $order = new WC_Order( $order_id );
 
             if ($order == null) {
@@ -252,7 +285,9 @@ function init_targetpay_class()
 
         public function process_payment($order_id) 
         {
-            global $woocommerce;
+            global $woocommerce, $wpdb;
+            
+			$TargetPaySalesTable = $wpdb->prefix . "woocommerce_TargetPay_Sales"; 
 
             $order = new WC_Order($order_id);
             $orderID = $order->id;
@@ -275,8 +310,20 @@ function init_targetpay_class()
             $tx = $this->payMethodId."-".$order->id;
             $targetPay->setReportUrl (add_query_arg( 'wc-api', 'WC_Gateway_TargetPay', add_query_arg( 'tx', $tx, home_url( '/' ) ) ) );
 
+
             $this->additionalParameters ($order, $targetPay);
             $url = $targetPay->startPayment();
+
+			$sql = "INSERT INTO ".$TargetPaySalesTable." SET 
+						`cart_id` = '".$order->get_order_number()."',
+						`rtlo` = '".$this->parentSettings["rtlo"]."',
+						`paymethod` = '".$this->payMethodId."',
+						`transaction_id` = '".$targetPay->getTransactionId()."'
+			
+			";
+			
+			require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+			dbDelta( $sql );
 
             if (!$url) {
                 $message = $targetPay->getErrorMessage();
@@ -381,105 +428,6 @@ function init_targetpay_class()
             if (isset($_POST["country"])) $targetPay->setCountryId ($_POST["country"]);         
         }
 
-    }
-
-    /**
-     *  Specifics for Pay by Invoice (Achteraf betalen)
-     */
-
-    class WC_Gateway_TargetPay_PaymentMethod_PayByInvoice extends WC_Gateway_TargetPay_Base 
-    {
-        protected $payMethodId = "AFT";
-        protected $payMethodName = "Achteraf betalen";
-        protected $maxAmount = 1000;
-        public    $enabled = false; // true: disabled per 1-10-2014
-        public    $description = 'Achteraf Betalen';
-
-        /**
-         *      Parse cart to order contents array
-         */
-
-        public function parseOrderContents ($order, $amountToPay) 
-        {
-            $return = array();
-
-            // Cart items
-
-            $products = $order->get_items();
-
-            foreach ($products as $id => $product) {
-
-                $tax_rate = ($product["line_subtotal"]) ? $product["line_subtotal_tax"] / $product["line_subtotal"] * 100 : 0;
-                $qty = ($product["qty"]) ? $product["qty"] : 1;
-
-                $return[] = array(
-                    'type' => 1,
-                    'product' => $product["product_id"],
-                    'description' => $product["name"],
-                    'amount' => round((($product["line_subtotal"] + $product["line_subtotal"])/ $qty) * 100), 
-                    'quantity' => $product["qty"],
-                    'amountvat' => $tax_rate,
-                    'discount' => 0, // Not available
-                    'discountvat' => 0 // Not available
-                );
-            }
-
-            // Calculate shipping etc.
-
-            $return[] = array(
-                'type' => 2,
-                'amount' => round(($order->get_total_shipping() + $order->get_shipping_tax())*100), 
-                'amountvat' => round($order->get_shipping_tax()*100),
-                'discount' => 0, // Not available
-                'discountvat' => 0 // Not available
-            );
-
-            // Rest?
-
-            $rest = $amountToPay - $order->get_total_shipping() - $order->get_shipping_tax();
-
-            if ($rest > 0.01) {
-                $return[] = array(
-                    'type' => 4, // Actually we don't know...
-                    'amount' => round($rest*100),
-                    'amountvat' => 0, 
-                    'discount' => 0, // Not available
-                    'discountvat' => 0 // Not available
-                );            
-            }
-
-            return $return;
-        }   
-
-        /**
-         *  Bind additional details from the order
-         */ 
-
-        public function additionalParameters (WC_Order $order, TargetPayCore $targetPay) 
-        {   
-            $targetPay->setCurrency ($order->get_order_currency()); 
-            $targetPay->bindParam ("cgender", "") // Resume
-                    ->bindParam ("cinitials", ucfirst(substr($order->billing_first_name,0,1)).".") // Experimental
-                    ->bindParam ("clastname", $order->billing_last_name) 
-                    ->bindParam ("cbirthdate", "") // Resume
-                    ->bindParam ("cbank", "") // Resume
-                    ->bindParam ("cphone", $order->billing_phone) 
-                    ->bindParam ("cmobilephone", $order->billing_phone) 
-                    ->bindParam ("cemail", $order->billing_email) 
-
-                    ->bindParam ("order", $order->id) 
-                    ->bindParam ("ordercontents", json_encode($this->parseOrderContents($order, $order->order_total ))) // todo
-
-                    ->bindParam ("invoiceaddress", $order->billing_address_1 . (($order->billing_address_2) ? " ".$order->billing_address_2 : "")) 
-                    ->bindParam ("invoicezip", $order->billing_postcode) 
-                    ->bindParam ("invoicecity", $order->billing_city) 
-                    ->bindParam ("invoicecountry", $order->billing_city)
-
-                    ->bindParam ("deliveryaddress", $order->shipping_address_1 . (($order->shipping_address_2) ? " ".$order->shipping_address_2 : "")) 
-                    ->bindParam ("deliveryzip", $order->shipping_postcode) 
-                    ->bindParam ("deliverycity", $order->shipping_city) 
-                    ->bindParam ("deliverycountry", $order->shipping_city);
-        }     
     }
 
     /**

@@ -181,7 +181,7 @@ function init_targetpay_class()
 			$sale = $wpdb->get_results($sql, OBJECT);
 			if(count($sale) == 0) {
 				echo "sale not found";
-				return;
+				die();
 			}
 			$sale = $sale[0];
 

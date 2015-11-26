@@ -24,7 +24,7 @@ class TargetPayCore
 	{
     // Constants
 
-	const     MIN_AMOUNT			= 1;
+	const     MIN_AMOUNT			= 84;
 
     const     ERR_NO_AMOUNT			= "Geen bedrag meegegeven | No amount given";
     const	  ERR_NO_DESCRIPTION	= "Geen omschrijving meegegeven | No description given";
@@ -48,7 +48,7 @@ class TargetPayCore
 																				    c) 'DEB' + countrycode for Sofort Banking, e.g. DEB49 for Germany
                                                                                 */
 
-    protected $minimumAmounts		= array("AUTO" => 84, "IDE" => 1, "MRC" => 49, "DEB" => 10, "WAL" => 10, "CC" => 100);
+    protected $minimumAmounts		= array("AUTO" => 84, "IDE" => 84, "MRC" => 49, "DEB" => 10, "WAL" => 10, "CC" => 100);
 
     protected $checkAPIs			= array("IDE" => "https://www.targetpay.com/ideal/check",
     										"MRC" => "https://www.targetpay.com/mrcash/check",

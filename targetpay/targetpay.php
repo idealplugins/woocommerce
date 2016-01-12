@@ -26,30 +26,6 @@ if (!class_exists('TargetPayCore')) {
 
 add_action( 'plugins_loaded', 'init_targetpay_class', 0);
 
-
-
-
-function detect_plugin_activation() {
-    global $wpdb;
-    $table_name = $wpdb->prefix . "woocommerce_TargetPay_Sales"; 
-	$charset_collate = $wpdb->get_charset_collate();
-
-	$sql = "CREATE TABLE IF NOT EXISTS " . $table_name . " (
-			`id` int(11) NOT NULL AUTO_INCREMENT,
-			`cart_id` varchar(11) NOT NULL DEFAULT '0',
-			`rtlo` int(11) NOT NULL,
-			`paymethod` varchar(8) NOT NULL DEFAULT 'IDE',
-			`transaction_id` varchar(255) NOT NULL,
-			UNIQUE KEY id (id),
-			KEY `cart_id` (`cart_id`),
-			KEY `transaction_id` (`transaction_id`)
-		) $charset_collate;";
-
-	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-	dbDelta( $sql );
-}
-add_action( 'activated_plugin', 'detect_plugin_activation');
-
 function init_targetpay_class() 
 {
 
@@ -173,17 +149,23 @@ function init_targetpay_class()
             @ob_clean();
 
             list ($payMethod, $order_id) = explode("-", $_REQUEST["tx"], 2);
-
-
 			global $wpdb;
 			$table_name = $wpdb->prefix . "woocommerce_TargetPay_Sales"; 
-			$sql = "SELECT * FROM ".$table_name ." WHERE `cart_id` = '".$order_id."' AND `transaction_id` = '".$_REQUEST['trxid']."'";
-			$sale = $wpdb->get_results($sql, OBJECT);
-			if(count($sale) == 0) {
-				echo "sale not found";
+			
+			//Will it start with 00? remove those ideal v1 v2
+			if(substr($_REQUEST['trxid'],0,2) == 00) {
+				$trxid = substr($_REQUEST['trxid'],2,strlen($_REQUEST['trxid']));
+			} else {
+				$trxid = $_REQUEST['trxid']; //ideal v3
+			}
+			
+			$sql = "SELECT * FROM ".$table_name ." WHERE `order_id` = '".$order_id."' AND `transaction_id` = '".$trxid."'";
+			$sale = $wpdb->get_row($sql,OBJECT);
+
+			if($sale == null) { //Oeps something wrong... Some extra debug information for Targetpay
+				echo "sale not found | used cart_id: ".$sale->order_id." | Used transaction_id: (POST) '".$_REQUEST['trxid']."' (modified): ".$trxid;
 				die();
 			}
-			$sale = $sale[0];
 
             $targetPay = new TargetPayCore ($sale->paymethod, $sale->rtlo, "ef96dc7014cfff1a73a743e6dd8cb692", "nl", ($this->settings["testmode"]=="yes") ? 1 : 0);
             $result = $targetPay->checkPayment($sale->transaction_id);
@@ -314,6 +296,42 @@ function init_targetpay_class()
             $this->additionalParameters ($order, $targetPay);
             $url = $targetPay->startPayment();
 
+
+			$table_name = $wpdb->prefix . "woocommerce_TargetPay_Sales"; 
+			$charset_collate = $wpdb->get_charset_collate();
+
+			$sql = "CREATE TABLE IF NOT EXISTS " . $TargetPaySalesTable . " (
+							`id` int(11) NOT NULL AUTO_INCREMENT,
+							`cart_id` int(11) NOT NULL DEFAULT '0',
+							`order_id` varchar(11) NOT NULL DEFAULT '0',
+							`rtlo` int(11) NOT NULL,
+							`paymethod` varchar(8) NOT NULL DEFAULT 'IDE',
+							`transaction_id` varchar(255) NOT NULL,
+							UNIQUE KEY id (id),
+							KEY `cart_id` (`cart_id`),
+							KEY `transaction_id` (`transaction_id`)
+						) ".$charset_collate.";";
+			$wpdb->query( $sql );
+
+			$wpdb->insert( 
+							$TargetPaySalesTable,
+							array(
+									'cart_id' => $order->get_order_number(),
+									'order_id' => $order->id,
+									'rtlo' => $this->parentSettings["rtlo"],
+									'paymethod' => $this->payMethodId,
+									'transaction_id' => $targetPay->getTransactionId()
+									),
+							array(
+									'%s',
+									'%d',
+									'%d',
+									'%s',
+									'%d'
+									)
+							);
+
+			/*
 			$sql = "INSERT INTO ".$TargetPaySalesTable." SET 
 						`cart_id` = '".$order->get_order_number()."',
 						`rtlo` = '".$this->parentSettings["rtlo"]."',
@@ -321,10 +339,8 @@ function init_targetpay_class()
 						`transaction_id` = '".$targetPay->getTransactionId()."'
 			
 			";
-			
-			require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-			dbDelta( $sql );
-
+			$wpdb->get_results( $sql );
+*/
             if (!$url) {
                 $message = $targetPay->getErrorMessage();
                 // $woocommerce->add_error(__('Payment error:', 'woothemes') . ' ' . $message); -> changed in 2.2

@@ -58,6 +58,7 @@ function init_targetpay_class()
 
             $this->rtlo         = $this->get_option( 'rtlo' );
             $this->testmode     = $this->get_option( 'testmode' );
+            $this->idealView     = $this->get_option( 'idealView' );
 
             add_action('woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
             add_action('woocommerce_api_wc_gateway_targetpay', array( $this, 'check_ipn_response' ) );
@@ -117,6 +118,13 @@ function init_targetpay_class()
                     'label' =>          __( 'Enable testmode', 'targetpay' ),
                     'default' =>        'no',
                     'description' =>    sprintf( __( 'Enable testmode, all orders will then be accepted even if unpaid/canceled.', 'woocommerce' ), 'targetpay' ),
+                ),
+                'idealView' => array(
+                    'title' =>          __( 'iDEAL bank view', 'targetpay' ),
+                    'type' =>           'checkbox',
+                    'label' =>          __( 'With radiobuttons', 'targetpay' ),
+                    'default' =>        'no',
+                    'description' =>    sprintf( __( 'If selected, the banklist will be formed with radiobuttons instead of a dropdownbox.', 'woocommerce' ), 'targetpay' ),
                 )
             );
         }
@@ -386,12 +394,22 @@ function init_targetpay_class()
                 include_once( ABSPATH . WPINC. '/class-http.php' );
 
             $targetPay = new TargetPayCore ("IDE");
-            $banks = false;
+            
             $temp = $targetPay->getBankList();
-            foreach ($temp as $key=>$value) 
-                $banks .= '<option value="'.$key.'">'.$value.'</option>';
-
-            $this->description = '<select name="bank" style="width:170px; padding: 2px; margin-left: 7px">'.$banks.'</select>';
+            
+            $this->parentSettings = get_option('woocommerce_targetpay_settings', null);
+            if($this->parentSettings["idealView"] == 'yes') {
+				$this->description = '';
+				foreach ($temp as $key=>$value) {
+					$this->description .= '<input type="radio" name="bank" id="'.$key.'" value="'.$key.'"><label for="'.$key.'">'.$value.'</label><br />';
+				}
+			} else {
+				$banks = false;
+				foreach ($temp as $key=>$value) {
+					$banks .= '<option value="'.$key.'">'.$value.'</option>';
+				}
+				$this->description = '<select name="bank" style="width:170px; padding: 2px; margin-left: 7px">'.$banks.'</select>';
+			}
             parent::__construct();
         }
 

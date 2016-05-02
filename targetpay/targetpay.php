@@ -89,12 +89,51 @@ function init_targetpay_class()
                         <div style=\"margin: 3px 0 3px 0; padding: 7px 0 12px 0; width: 100%; border-style: none none solid none; border-width: 1px; border-color: #ccc\">
                             <div style=\"margin: 0 25px 0 0\"><img src=\"".plugins_url('', __FILE__)."/images/admin_header.png\"></div>
                         </div>";
-                $this->generate_settings_html();
+				if($this->checkSqlTable() ) {
+					$this->generate_settings_html();
+				}
                 echo "</table>";
             } else {
                 echo "<div class=\"inline error\"><p><strong>". __( 'Gateway Disabled', 'woocommerce' ) . "</strong>: ". __( 'TargetPay does not support your store currency.', 'woocommerce' ) . "</p></div>";
             }
         }
+        
+        /**
+         *  Checks if the mysql table is correct when it exists. If not?
+         * 	create error
+         */
+        private function checkSqlTable() {
+			global $wpdb;
+			$table_name = $wpdb->prefix . "woocommerce_TargetPay_Sales"; 
+			
+			if($wpdb->get_var("SHOW TABLES LIKE '$table_name'")) {
+				$dbColums = $wpdb->get_col( "DESC " . $table_name, 0 );
+				$requiredColumns = ['id','cart_id','order_id','rtlo','paymethod','transaction_id'];
+				$missing = [];
+				foreach($requiredColumns AS $col) {
+					if(!in_array($col,$dbColums)) {
+						$missing[] = $col;
+					}
+				}
+				
+				if(count($missing)) {
+					echo '<h1 style="color:red">WARNING: '.((count($missing) == 1) ? 'One database column is missing' : 'Multiple database columns are missing' ).'</h1>';
+					if(count($missing) == 1) {
+						echo '<p>We want to inform you that one table column ('.array_shift(array_values($missing)).') is missing in the plugin table. The plugin will <strong>not</strong> work properly.</p>';
+					} else {
+						echo '</p>We want to inform you that multiple table columns are missing in the plugin table. The plugin will <strong>not</strong> work properly. Below an overview of the missing columns</p>';
+						echo '<ul>';
+						foreach($missing AS $value) {
+							echo '<li>'.$value.'</li>';
+						}
+						echo '</ul>';
+					}
+					echo "<strong>How to solve this issue?</strong><p>Rename / copy the database table '".$table_name."' into '".$table_name."_".date_i18n( 'Y_m_d', time() )."'.<br /></b>The plugin will create a new table automaticly.</p>";
+					return false;
+				}
+			}
+			return true;
+		}
 
         /**
          *  Form fields (admin)

@@ -108,8 +108,8 @@ function init_targetpay_class()
 			
 			if($wpdb->get_var("SHOW TABLES LIKE '$table_name'")) {
 				$dbColums = $wpdb->get_col( "DESC " . $table_name, 0 );
-				$requiredColumns = ['id','cart_id','order_id','rtlo','paymethod','transaction_id'];
-				$missing = [];
+				$requiredColumns = array('id','cart_id','order_id','rtlo','paymethod','transaction_id');
+				$missing = array();
 				foreach($requiredColumns AS $col) {
 					if(!in_array($col,$dbColums)) {
 						$missing[] = $col;

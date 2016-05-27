@@ -104,7 +104,7 @@ function init_targetpay_class()
          */
         private function checkSqlTable() {
 			global $wpdb;
-			$table_name = $wpdb->prefix . "woocommerce_TargetPay_Sales"; 
+			$table_name = $wpdb->prefix . "woocommerce_TargetPay_Sales27052016"; 
 			
 			if($wpdb->get_var("SHOW TABLES LIKE '$table_name'")) {
 				$dbColums = $wpdb->get_col( "DESC " . $table_name, 0 );
@@ -197,7 +197,7 @@ function init_targetpay_class()
 
             list ($payMethod, $order_id) = explode("-", $_REQUEST["tx"], 2);
 			global $wpdb;
-			$table_name = $wpdb->prefix . "woocommerce_TargetPay_Sales"; 
+			$table_name = $wpdb->prefix . "woocommerce_TargetPay_Sales27052016"; 
 			
 			//Will it start with 00? remove those ideal v1 v2
 			if(substr($_REQUEST['trxid'],0,2) == 00) {
@@ -316,7 +316,7 @@ function init_targetpay_class()
         {
             global $woocommerce, $wpdb;
             
-			$TargetPaySalesTable = $wpdb->prefix . "woocommerce_TargetPay_Sales"; 
+			$TargetPaySalesTable = $wpdb->prefix . "woocommerce_TargetPay_Sales27052016"; 
 
             $order = new WC_Order($order_id);
             $orderID = $order->id;
@@ -344,7 +344,7 @@ function init_targetpay_class()
             $url = $targetPay->startPayment();
 
 
-			$table_name = $wpdb->prefix . "woocommerce_TargetPay_Sales"; 
+			$table_name = $wpdb->prefix . "woocommerce_TargetPay_Sales27052016"; 
 			$charset_collate = $wpdb->get_charset_collate();
 
 			$sql = "CREATE TABLE IF NOT EXISTS " . $TargetPaySalesTable . " (

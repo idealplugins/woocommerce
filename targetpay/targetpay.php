@@ -199,12 +199,7 @@ function init_targetpay_class()
 			global $wpdb;
 			$table_name = $wpdb->prefix . "woocommerce_TargetPay_Sales27052016"; 
 			
-			//Will it start with 00? remove those ideal v1 v2
-			if(substr($_REQUEST['trxid'],0,2) == 00) {
-				$trxid = substr($_REQUEST['trxid'],2,strlen($_REQUEST['trxid']));
-			} else {
-				$trxid = $_REQUEST['trxid']; //ideal v3
-			}
+			$trxid = $_REQUEST['trxid'];
 			
 			$sql = "SELECT * FROM ".$table_name ." WHERE `order_id` = '".$order_id."' AND `transaction_id` = '".$trxid."'";
 			$sale = $wpdb->get_row($sql,OBJECT);

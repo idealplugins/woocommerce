@@ -374,7 +374,7 @@ function init_targetpay_class()
 									'%d',
 									'%d',
 									'%s',
-									'%d'
+									'%s'
 									)
 							);
 

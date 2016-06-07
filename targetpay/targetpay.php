@@ -199,7 +199,7 @@ function init_targetpay_class()
 			global $wpdb;
 			$table_name = $wpdb->prefix . "woocommerce_TargetPay_Sales27052016"; 
 			
-			$trxid = $_REQUEST['trxid'];
+			$trxid = esc_sql($_REQUEST['trxid']);
 			
 			$sql = "SELECT * FROM ".$table_name ." WHERE `order_id` = '".$order_id."' AND `transaction_id` = '".$trxid."'";
 			$sale = $wpdb->get_row($sql,OBJECT);

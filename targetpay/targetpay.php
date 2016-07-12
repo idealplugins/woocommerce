@@ -248,7 +248,7 @@ function init_targetpay_class()
 
         public function __construct() 
         {
-            $this->id                 = "TargetPay_{$this->payMethodId}";
+            $this->id                 = strtolower("TargetPay_{$this->payMethodId}");
             $this->icon               = plugins_url('', __FILE__) . '/images/'. $this->payMethodId.'_24.png';
             $this->method_title       = "{$this->payMethodName}";
             $this->paymentMethodCode  = $this->payMethodId;

@@ -348,7 +348,7 @@ function init_targetpay_class()
 							`order_id` varchar(11) NOT NULL DEFAULT '0',
 							`rtlo` int(11) NOT NULL,
 							`paymethod` varchar(8) NOT NULL DEFAULT 'IDE',
-							`transaction_id` varchar(255) NOT NULL,
+							`transaction_id` varchar(100) NOT NULL,
 							UNIQUE KEY id (id),
 							KEY `cart_id` (`cart_id`),
 							KEY `transaction_id` (`transaction_id`)

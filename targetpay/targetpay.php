@@ -432,7 +432,7 @@ function init_targetpay_class()
             $temp = $targetPay->getBankList();
             
             $this->parentSettings = get_option('woocommerce_targetpay_settings', null);
-            if($this->parentSettings["idealView"] == 'yes') {
+            if(isset($this->parentSettings["idealView"]) && $this->parentSettings["idealView"] == 'yes') {
 				$this->description = '';
 				foreach ($temp as $key=>$value) {
 					$this->description .= '<input type="radio" name="bank" id="'.$key.'" value="'.$key.'"><label for="'.$key.'">'.$value.'</label><br />';

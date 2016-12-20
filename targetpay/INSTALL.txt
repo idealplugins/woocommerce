@@ -8,13 +8,13 @@
 
 -- Requirements ----------------------------------------------------------------
 
-PHP 5.0+
-Wordpress 3.5.1
-Woocommerce 2.0.5
+PHP 5.6+
+Wordpress 4.6+
+Woocommerce 2.6+
 
 -- Installation ----------------------------------------------------------------
 
-1. Install Wordpress 3.5.1
+1. Install the latest version of Wordpress from https://wordpress.org/download/
 
 2. Install Woocommerce, go to your Wordpress Dashboard (admin login)
    and click on 'Plugins'. Then click 'Add new' and search for 'Woocommerce'.
@@ -56,10 +56,10 @@ Distribution:	www.idealplugins.nl
 				Check here for more webshops plugins.
                 Missing anything? Mail to: tips@idealplugins.nl
 
-Author:			Yellow Melon B.V.
-				Kleine Koppel 52
-            	3812 PH  AMERSFOORT
-            	www.yellowmelon.nl
+Author:			iDeal plugins
+				Huizermaatweg 550
+				1276 LM Huizen
+            	www.idealplugins.nl
 
                 The software is provided 'as is'.
                 No (free) support is available.

@@ -1,0 +1,16 @@
+@CHARSET "UTF-8";
+.tp-method-conf {
+  margin: 3px 0 3px 0;
+  padding: 7px 0 12px 0;
+  width: 100%;
+  border-style: none none solid none;
+  border-width: 1px;
+  border-color: #ccc
+}
+.tp-method-conf .tp-icon {
+  margin: 0 25px 0 0;
+  float: left
+}
+.tp-method-conf .tp-icon-method {
+  margin: 0;
+}

@@ -64,7 +64,7 @@ Please see the FAQ on https://www.idealplugins.nl/woocommerce#tab_help
 
 == Changelog ==
 
-= 3.0 = 
+= 3.1 = 
 Complete rewrite and addition of new payment methods
 
 = 1.0 =

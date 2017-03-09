@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file     Provides support for TargetPay iDEAL, Mister Cash and Sofort Banking
+ * @file     Provides support for TargetPay iDEAL, Bancontact and Sofort Banking
  * @author   Yellow Melon B.V.
  * @url      http://www.idealplugins.nl
  * @release  29-09-2014
@@ -44,7 +44,7 @@ class TargetPayCore
         Then, when requested the bankId list will be filled with
 
         a) 'IDE' + the bank ID's for iDEAL
-        b) 'MRC' for Mister Cash
+        b) 'MRC' for Bancontact
         c) 'DEB' + countrycode for Sofort Banking, e.g. DEB49 for Germany
     */
 
@@ -118,7 +118,7 @@ class TargetPayCore
             $banks_array["IDE0001"] = "Bankenlijst kon niet opgehaald worden bij TargetPay, controleer of curl werkt!";
             $banks_array["IDE0002"] = "  ";
         } else {
-            $banks_object = new SimpleXMLElement($xml);
+            $banks_object = new \SimpleXMLElement($xml);
             foreach ($banks_object->bank as $bank) {
                 $banks_array["{$bank->bank_id}"] = "{$bank->bank_name}";
             }

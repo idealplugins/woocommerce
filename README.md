@@ -1,8 +1,7 @@
 # iDEAL plugin for Woocommerce
 
 ## Usage
-Use this plugin to add support for iDEAL, Mister Cash, Sofort and other payment methods of 
-TargetPay.com to your webstore. 
+Use this plugin to add support for iDEAL, Bancontact, Sofort Banking, Visa/Mastercard creditcards and Paysafecard to your webstore. 
 
 ## Installation
 

@@ -6,6 +6,8 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
     const WOO_ORDER_STATUS_PENDING = 'pending';
 
     const WOO_ORDER_STATUS_COMPLETED = 'completed';
+    
+    const WOO_ORDER_STATUS_PROCESSING = 'processing';
 
     const WOO_ORDER_STATUS_FAILED = 'failed';
 
@@ -18,6 +20,7 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
     protected $maxAmount;
 
     public $enabled = true;
+    public $enabledDescription = null;
 
     /**
      * Setup our Gateway's id, description and other values.
@@ -35,6 +38,11 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
         $this->init_settings();
         foreach ($this->settings as $setting_key => $value) {
             $this->$setting_key = $value;
+        }
+        
+        // check if method valid to show in FE
+        if(!$this->is_valid_for_use()) {
+            $this->enabled = false;
         }
         
         // the description show in payment method(Text || payment option)
@@ -95,13 +103,14 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
                 'title' => __('Enable / Disable', 'targetpay'),
                 'label' => __('Enable this payment gateway', 'targetpay'),
                 'type' => 'checkbox',
-                'default' => 'yes'
+                'default' => $this->enabled ? 'yes' : 'no',
+                'description' => $this->enabledDescription ? __($this->enabledDescription, 'targetpay') : null
             ),
             'rtlo' => array(
                 'title' => __('TargetPay layoutcode', 'targetpay'),
                 'type' => 'text',
                 'description' => __('Your TargetPay layoutcode (rtlo). This was given in the registration process ' . 'or you can find it on TargetPay.com under <a href="https://www.targetpay.com/subaccounts" target="_blank">My account > Subaccounts</a>', 'targetpay'),
-                'default' => '93929', // Default TargetPay
+                'default' => '', // Default TargetPay
                 'desc_tip' => false,
                 'placeholder' => 'Layoutcode'
             ),
@@ -112,12 +121,16 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
                 'default' => 'no',
                 'description' => __('Enable testmode, all orders will then be accepted even if unpaid/canceled.', 'targetpay')
             ),
-            'idealView' => array(
-                'title' => __('iDEAL bank view', 'targetpay'),
-                'type' => 'checkbox',
-                'label' => __('With radiobuttons', 'targetpay'),
-                'default' => 'no',
-                'description' => __('If selected, the banklist will be formed with radiobuttons instead of a dropdownbox.', 'targetpay')
+            'orderStatus' => array(
+                'title' => __('Status after payment is received', 'targetpay'),
+                'class' => 'tp-select',
+                'type' => 'select',
+                'description' => __('Choose whether you wish to set payment status after received.', 'targetpay'),
+                'default' => self::WOO_ORDER_STATUS_COMPLETED,
+                'options' => array(
+                    self::WOO_ORDER_STATUS_COMPLETED => __('Completed', 'targetpay'),
+                    self::WOO_ORDER_STATUS_PROCESSING => __('Processing', 'targetpay')
+                )
             )
         );
     }
@@ -241,7 +254,7 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
                 $targetPay = new TargetPayCore($extOrder->paymethod, $extOrder->rtlo, $this->appId, 'nl', ($extOrder->testmode == 'yes') ? 1 : 0);
                 $result = $targetPay->checkPayment($extOrder->transaction_id);
                 if ($result) {
-                    $order->update_status(self::WOO_ORDER_STATUS_COMPLETED, "Method $order->payment_method_title(Transaction ID $extOrder->transaction_id): ");
+                    $order->update_status($this->orderStatus, "Method $order->payment_method_title(Transaction ID $extOrder->transaction_id): ");
                     return;
                 }
                 $this->updateTargetPayMessage($order, $targetPay->getErrorMessage());
@@ -281,7 +294,7 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
                 $result = $targetPay->checkPayment($extOrder->transaction_id);
                 if ($result) {
                     $woocommerce->cart->empty_cart();
-                    $order->update_status(self::WOO_ORDER_STATUS_COMPLETED, "Method $order->payment_method_title(Transaction ID $extOrder->transaction_id): ");
+                    $order->update_status($this->orderStatus, "Method $order->payment_method_title(Transaction ID $extOrder->transaction_id): ");
                     return wp_redirect($this->get_return_url($order));
                 }
                 $this->updateTargetPayMessage($order, $targetPay->getErrorMessage());
@@ -292,6 +305,7 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
                 return wp_redirect(add_query_arg('wc_error', $extOrder->message, $woocommerce->cart->get_cart_url()));
                 break;
             case self::WOO_ORDER_STATUS_COMPLETED:
+            case self::WOO_ORDER_STATUS_PROCESSING:
                 $woocommerce->cart->empty_cart();
                 return wp_redirect($this->get_return_url($order));
                 break;

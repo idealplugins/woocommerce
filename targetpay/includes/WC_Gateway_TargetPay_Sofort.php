@@ -28,22 +28,13 @@ class WC_Gateway_TargetPay_Sofort extends WC_Gateway_TargetPay
         $html = '';
         $targetPay = new TargetPayCore($this->payMethodId);
         $temp = $targetPay->getBankList();
-        if ($this->idealView == 'yes') {
-            foreach ($temp as $key => $value) {
-                $countryId = str_replace('DEB', '', $key);
-                $countryName = str_replace('Sofort Banking: ', '', $value);
-                $html .= '<input type="radio" name="country" id="' . $key .'" value="'. $countryId .
-                '"><label for="'.$key.'">'.$countryName.'</label><br />';
-            }
-        } else {
-            $html .= '<select name="country" style="width:220px; padding: 2px; margin-left: 7px">';
-            foreach ($temp as $key => $value) {
-                $countryId = str_replace('DEB', '', $key);
-                $countryName = str_replace('Sofort Banking: ', '', $value);
-                $html .= '<option value="'.$countryId.'">'.$countryName.'</option>';
-            }
-            $html .= '</select>';
+        $html .= '<select name="country" style="width:220px; padding: 2px; margin-left: 7px">';
+        foreach ($temp as $key => $value) {
+            $countryId = str_replace('DEB', '', $key);
+            $countryName = str_replace('Sofort Banking: ', '', $value);
+            $html .= '<option value="'.$countryId.'">'.$countryName.'</option>';
         }
+        $html .= '</select>';
         return $html;
     }
 } // End Class

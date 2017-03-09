@@ -14,3 +14,7 @@
 .tp-method-conf .tp-icon-method {
   margin: 0;
 }
+.tp-select {
+  width:220px;
+  padding: 2px;
+}

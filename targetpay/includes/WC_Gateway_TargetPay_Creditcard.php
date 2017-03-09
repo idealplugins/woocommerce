@@ -4,7 +4,8 @@ class WC_Gateway_TargetPay_Creditcard extends WC_Gateway_TargetPay
 {
     protected $payMethodId = "CC";
     protected $payMethodName = "Visa/Mastercard";
-    public $enabled = true;
+    public $enabled = false;
+    public $enabledDescription = 'Only possible when creditcard is activated on your targetpay account';
     protected $maxAmount = 10000;
     
     /**

@@ -1,8 +1,8 @@
 === Plugin Name ===
 Contributors: idealplugins
-Tags: targetpay, ideal, sofort, mrcash, payment
+Tags: targetpay, ideal, bancontact, sofort banking, visa,mastercard,creditcard,paysafecard
 Requires at least: 3.0.1
-Tested up to: 4.6.1
+Tested up to: 4.7
 Stable tag: Master
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -25,8 +25,10 @@ Payment Methods:
 This plugins offers payment options for the following payment methods:
 
 * iDEAL
-* MrCash
-* Sofort
+* Bancontact
+* Sofort Banking
+* Visa/Mastercard creditcards
+* Paysafecard
 
 When registering for an account, use our promotional code YM3R2A for a special discount on the transaction costs. Currently iDEAL is offered for 44 eurocent per transaction, all-inclusive without monthly costs or setup fees.
 
@@ -61,6 +63,9 @@ Please see the FAQ on https://www.idealplugins.nl/woocommerce#tab_help
 
 
 == Changelog ==
+
+= 3.0 = 
+Complete rewrite and addition of new payment methods
 
 = 1.0 =
 Initial release

@@ -1,6 +1,6 @@
 <?php
-/*TargetPay MisterCash Payment Gateway Class */
-class WC_Gateway_TargetPay_MisterCash extends WC_Gateway_TargetPay
+/*TargetPay Bancontact Payment Gateway Class */
+class WC_Gateway_TargetPay_Bancontact extends WC_Gateway_TargetPay
 {
     protected $payMethodId = "MRC";
     protected $payMethodName = "Bancontact";

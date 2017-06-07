@@ -81,7 +81,7 @@ class WC_Gateway_TargetPay_iDEAL extends WC_Gateway_TargetPay
         $html = '';
         $targetPay = new TargetPayCore($this->payMethodId);
         $temp = $targetPay->getBankList();
-        if ($this->idealView == 'yes') {
+        if (isset($this->idealView) && $this->idealView == 'yes') {
             foreach ($temp as $key => $value) {
                 $html .= '<input type="radio" name="bank" id="'. $key . '" value="'. $key .
                 '"><label for="'.$key.'">'.$value.'</label><br />';

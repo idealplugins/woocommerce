@@ -12,7 +12,7 @@
  * Description: Activeert iDEAL, Bancontact, Sofort Banking, Visa/Mastercard creditcards and Paysafecard in Woocommerce
  * Author: Idealplugins.nl
  * Author URI: http://www.idealplugins.nl
- * Version: 3 - 09-03-2017
+ * Version: 4.0 - 07-06-2017 bugfixes & compatibility
  */
 
 define('TARGETPAY_OLD_TABLE_NAME', 'woocommerce_targetpay_sales27052016');

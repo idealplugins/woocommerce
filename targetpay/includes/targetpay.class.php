@@ -203,7 +203,12 @@ class TargetPayCore
                 "returnurl=".urlencode($this->returnUrl)."&".
                 ((!empty($this->cancelUrl)) ? "cancelurl=".urlencode($this->cancelUrl)."&" : "").
                 "reporturl=".urlencode($this->reportUrl);
-
+        
+        if(WP_DEBUG) {
+            error_log("\n-------------------------------------------------\n");
+            error_log($url);
+        }
+                
         if (is_array($this->parameters)) {
             foreach ($this->parameters as $k => $v) {
                 $url .= "&" . $k . "=" . urlencode($v);

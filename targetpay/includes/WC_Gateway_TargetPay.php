@@ -6,7 +6,7 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
     const WOO_ORDER_STATUS_PENDING = 'pending';
 
     const WOO_ORDER_STATUS_COMPLETED = 'completed';
-    
+
     const WOO_ORDER_STATUS_PROCESSING = 'processing';
 
     const WOO_ORDER_STATUS_FAILED = 'failed';
@@ -18,6 +18,8 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
     protected $payMethodName;
 
     protected $maxAmount;
+    
+    public $list_success_status;
 
     public $enabled = true;
     public $enabledDescription = null;
@@ -30,7 +32,7 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
         
         // The global ID for this Payment method
         $this->id = strtolower("TargetPay_{$this->payMethodId}");
-        
+        $this->setListSuccessStatus();
         // This basically defines your settings which are then loaded with init_settings()
         $this->init_form_fields();
         
@@ -127,10 +129,7 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
                 'type' => 'select',
                 'description' => __('Choose whether you wish to set payment status after received.', 'targetpay'),
                 'default' => self::WOO_ORDER_STATUS_COMPLETED,
-                'options' => array(
-                    self::WOO_ORDER_STATUS_COMPLETED => __('Completed', 'targetpay'),
-                    self::WOO_ORDER_STATUS_PROCESSING => __('Processing', 'targetpay')
-                )
+                'options' => $this->list_success_status
             )
         );
     }
@@ -142,7 +141,7 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
      *
      * @see WC_Payment_Gateway::process_payment()
      */
-    public function process_payment($order_id)
+    public function process_payment($order_id, $retry = true)
     {
         global $woocommerce, $wpdb;
         
@@ -245,22 +244,36 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
         global $woocommerce, $wpdb;
         $orderId = ! empty($_REQUEST['od']) ? esc_sql($_REQUEST['od']) : null;
         $trxid = ! empty($_REQUEST['trxid']) ? esc_sql($_REQUEST['trxid']) : null;
-        
-        if ($orderId && $trxid) {
-            $order = new WC_Order($orderId);
-            $extOrder = $this->getExtOrder($orderId, $trxid);
-            
-            if ($order->post && $extOrder && $order->status == self::WOO_ORDER_STATUS_PENDING) {
+//         if ( substr($_SERVER['REMOTE_ADDR'],0,10) == "89.184.168" ||
+//             substr($_SERVER['REMOTE_ADDR'],0,9) == "78.152.58" ) {
+            if ($orderId && $trxid) {
+                $order = new WC_Order($orderId);
+                $extOrder = $this->getExtOrder($orderId, $trxid);
+                if (!$order || !$extOrder) {
+                    die("order is not found");
+                }
+                //Ignore updating Woo Order if Order Status is Paid (completed, processing)
+                if (in_array($order->status, array_keys($this->list_success_status))) {
+                    echo "order $orderId had been done";
+                    die;
+                }
+                echo 'Prev status= ' . $order->status . PHP_EOL;
                 $targetPay = new TargetPayCore($extOrder->paymethod, $extOrder->rtlo, $this->appId, 'nl', ($extOrder->testmode == 'yes') ? 1 : 0);
                 $result = $targetPay->checkPayment($extOrder->transaction_id);
                 if ($result) {
                     $order->update_status($this->orderStatus, "Method $order->payment_method_title(Transaction ID $extOrder->transaction_id): ");
-                    return;
+                } else {
+                    $this->updateTargetPayMessage($order, $targetPay->getErrorMessage());
+                    $order->update_status(self::WOO_ORDER_STATUS_FAILED, "Method $order->payment_method_title(Transaction ID $extOrder->transaction_id): ");
                 }
-                $this->updateTargetPayMessage($order, $targetPay->getErrorMessage());
-                $order->update_status(self::WOO_ORDER_STATUS_FAILED, "Method $order->payment_method_title(Transaction ID $extOrder->transaction_id): ");
-            }
-        }
+                echo 'current status= ' . $order->status . PHP_EOL;
+                echo 'order number= ' . $orderId . PHP_EOL;
+                die('Version=wc 1.2.1');
+             }
+             die("orderId || trxid is empty");
+//         } else {
+//             die("IP address not correct... This call is not from Targetpay");
+//         }
     }
     
     /**
@@ -290,19 +303,10 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
         global $wpdb;
         switch ($order->status) {
             case self::WOO_ORDER_STATUS_PENDING:
-                $targetPay = new TargetPayCore($extOrder->paymethod, $extOrder->rtlo, $this->appId, 'nl', ($extOrder->testmode == 'yes') ? 1 : 0);
-                $result = $targetPay->checkPayment($extOrder->transaction_id);
-                if ($result) {
-                    $woocommerce->cart->empty_cart();
-                    $order->update_status($this->orderStatus, "Method $order->payment_method_title(Transaction ID $extOrder->transaction_id): ");
-                    return wp_redirect($this->get_return_url($order));
-                }
-                $this->updateTargetPayMessage($order, $targetPay->getErrorMessage());
-                $order->update_status(self::WOO_ORDER_STATUS_FAILED, "Method $order->payment_method_title(Transaction ID $extOrder->transaction_id): ");
-                wp_redirect(add_query_arg('wc_error', urlencode($targetPay->getErrorMessage()), $woocommerce->cart->get_cart_url()));
+                return wp_redirect(add_query_arg('wc_error', urlencode(__('The payment is under processing', 'targetpay')), $woocommerce->cart->get_cart_url()));
                 break;
             case self::WOO_ORDER_STATUS_FAILED:
-                return wp_redirect(add_query_arg('wc_error', $extOrder->message, $woocommerce->cart->get_cart_url()));
+                return wp_redirect(add_query_arg('wc_error', urlencode($extOrder->message), $woocommerce->cart->get_cart_url()));
                 break;
             case self::WOO_ORDER_STATUS_COMPLETED:
             case self::WOO_ORDER_STATUS_PROCESSING:
@@ -450,7 +454,14 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
             }
         }
     }
-
+    
+    public function setListSuccessStatus() {
+        $this->list_success_status = array (
+            self::WOO_ORDER_STATUS_COMPLETED => __('Completed', 'targetpay'),
+            self::WOO_ORDER_STATUS_PROCESSING => __('Processing', 'targetpay')
+        );
+    }
+    
     /**
      * Event handler to attach additional parameters.
      *

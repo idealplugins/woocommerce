@@ -2,7 +2,7 @@
 Contributors: idealplugins
 Tags: targetpay, ideal, bancontact, sofort banking, visa,mastercard,creditcard,paysafecard
 Requires at least: 3.0.1
-Tested up to: 4.7
+Tested up to: 4.7.3
 Stable tag: Master
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -63,6 +63,9 @@ Please see the FAQ on https://www.idealplugins.nl/woocommerce#tab_help
 
 
 == Changelog ==
+
+= 4.0 =
+Fix compatibility issue with latest WooCommerce release.
 
 = 3.1 = 
 Complete rewrite and addition of new payment methods

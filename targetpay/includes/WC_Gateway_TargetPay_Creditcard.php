@@ -7,14 +7,15 @@ class WC_Gateway_TargetPay_Creditcard extends WC_Gateway_TargetPay
     public $enabled = false;
     public $enabledDescription = 'Only possible when creditcard is activated on your targetpay account';
     protected $maxAmount = 10000;
+    protected $minAmount = 1;
     
     /**
      * return method description
      * {@inheritDoc}
-     * @see WC_Gateway_TargetPay::getTagetPayMethodOption()
+     * @see WC_Gateway_TargetPay::getTargetPayMethodOption()
      * @return string
      */
-    protected function getTagetPayMethodOption()
+    protected function getTargetPayMethodOption()
     {
         return 'Visa/Mastercard';
     }

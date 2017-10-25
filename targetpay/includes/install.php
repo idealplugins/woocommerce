@@ -1,7 +1,7 @@
 <?php
 class TargetPayInstall
 {
-    static $tp_methods = array('ide', 'mrc', 'deb', 'wal', 'cc');
+    static $tp_methods = array('ide', 'mrc', 'deb', 'wal', 'cc', 'afp', 'bw', 'pyp');
 
     /**
      * install db when active plugin
@@ -10,8 +10,13 @@ class TargetPayInstall
      */
     public static function install_db()
     {
-        self::create_tagetpay_db();
-        self::migrate_data();
+        global $wpdb;
+        $targetpayTbl = $wpdb->prefix . TARGETPAY_TABLE_NAME;
+        if(!$wpdb->get_var("SHOW TABLES LIKE '$targetpayTbl'") == $targetpayTbl) {
+            self::create_tagetpay_db();
+            self::migrate_data();
+        }
+        self::update_tagetpay_db();
     }
 
     /**
@@ -29,6 +34,7 @@ class TargetPayInstall
         `rtlo` int(11) NOT NULL,
         `paymethod` varchar(8) NOT NULL DEFAULT 'IDE',
         `transaction_id` varchar(100) NOT NULL,
+        `more` varchar(255) NULL,
         `testmode` varchar(3) NOT NULL DEFAULT 'no',
         `message` varchar(255) NULL,
         UNIQUE KEY id (id),
@@ -39,9 +45,19 @@ class TargetPayInstall
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
     }
+    
+    /**
+     * Update targetpay table => add more field
+     */
+    public static function update_tagetpay_db()
+    {
+        global $wpdb;
+        $sql = "ALTER TABLE " . $wpdb->prefix . TARGETPAY_TABLE_NAME . " ADD `more` VARCHAR(255) NULL AFTER `transaction_id`;";
+        $wpdb->query($sql);
+    }
 
     /**
-     * migrate data from old table to new one & delete old table
+     * migrate data from old table to new one
      */
     public static function migrate_data()
     {
@@ -66,9 +82,6 @@ class TargetPayInstall
             $sql = "INSERT INTO " . $wpdb->prefix . TARGETPAY_TABLE_NAME . " (`cart_id`, `order_id`, `rtlo`, `paymethod`, `transaction_id`)
                     SELECT `cart_id`, `order_id`, `rtlo`, `paymethod`, `transaction_id` FROM " . $oldTable;
             $wpdb->query($sql);
-            //delete old table
-            $wpdb->query( "DROP TABLE " . $oldTable );
         }
-
     }
 }

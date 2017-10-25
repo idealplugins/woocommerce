@@ -24,11 +24,12 @@ class TargetPayCore
 {
     // Constants
 
+    const APP_ID = 'dw_woocommerce3.x_5.0.1';
+
     const MIN_AMOUNT            = 84;
 
     const ERR_NO_AMOUNT         = "Geen bedrag meegegeven | No amount given";
     const ERR_NO_DESCRIPTION    = "Geen omschrijving meegegeven | No description given";
-    const ERR_AMOUNT_TOO_LOW    = "Bedrag is te laag | Amount is too low";
     const ERR_NO_RTLO           = "Geen rtlo (layoutcode TargetPay) bekend; controleer de module instellingen | No rtlo (layoutcode TargetPay) filled in, check the module settings";
     const ERR_NO_TXID           = "Er is een onjuist transactie ID opgegeven | An incorrect transaction ID was given";
     const ERR_NO_RETURN_URL     = "Geen of ongeldige return URL | No or invalid return URL";
@@ -39,24 +40,29 @@ class TargetPayCore
 
     // Constant array's
 
-    protected $paymentOptions   = array("AUTO", "IDE", "MRC", "DEB", "WAL", "CC");
-    /*  If payMethod is set to 'AUTO' it will decided on the value of bankId
-        Then, when requested the bankId list will be filled with
+    protected $paymentOptions   = array("IDE", "MRC", "DEB", "WAL", "CC", "PYP", "BW", "AFP");
 
-        a) 'IDE' + the bank ID's for iDEAL
-        b) 'MRC' for Bancontact
-        c) 'DEB' + countrycode for Sofort Banking, e.g. DEB49 for Germany
-    */
-
-    protected $minimumAmounts   = array("AUTO" => 84, "IDE" => 84, "MRC" => 49, "DEB" => 10, "WAL" => 10, "CC" => 100);
-
-    protected $checkAPIs        = array(
-        "IDE" => "https://www.targetpay.com/ideal/check",
-        "MRC" => "https://www.targetpay.com/mrcash/check",
-        "DEB" => "https://www.targetpay.com/directebanking/check",
-        "WAL" => "https://www.targetpay.com/paysafecard/check",
-        "CC" => "https://www.targetpay.com/creditcard_atos/check"
-    );
+    protected $checkAPIs = [
+        "IDE" => "https://transaction.digiwallet.nl/ideal/check",
+        "MRC" => "https://transaction.digiwallet.nl/mrcash/check",
+        "DEB" => "https://transaction.digiwallet.nl/directebanking/check",
+        "WAL" => "https://transaction.digiwallet.nl/paysafecard/check",
+        "CC"  => "https://transaction.digiwallet.nl/creditcard/check",
+        "PYP" => "https://transaction.digiwallet.nl/paypal/check",
+        "AFP" => "https://transaction.digiwallet.nl/afterpay/check",
+        "BW"  => "https://transaction.digiwallet.nl/bankwire/check"
+    ];
+    
+    protected $startAPIs = [
+        "IDE" => "https://transaction.digiwallet.nl/ideal/start",
+        "MRC" => "https://transaction.digiwallet.nl/mrcash/start",
+        "DEB" => "https://transaction.digiwallet.nl/directebanking/start",
+        "WAL" => "https://transaction.digiwallet.nl/paysafecard/start",
+        "CC" => "https://transaction.digiwallet.nl/creditcard/start",
+        "PYP" => "https://transaction.digiwallet.nl/paypal/start",
+        "AFP" => "https://transaction.digiwallet.nl/afterpay/start",
+        "BW" => "https://transaction.digiwallet.nl/bankwire/start"
+    ];
 
     // Variables
 
@@ -64,12 +70,10 @@ class TargetPayCore
     protected $testMode         = false;
 
     protected $language         = "nl";
-    protected $payMethod        = "AUTO"; // Payment Method
-    protected $currency         = "EUR";
+    protected $payMethod        = null;
 
     protected $bankId           = null;
     protected $countryId        = null;
-    protected $appId            = null;
     protected $amount           = 0;
     protected $description      = null;
     protected $returnUrl        = null; // When using the AUTO-setting; %payMethod% will be replaced by the actual payment method just before starting the payment
@@ -80,18 +84,22 @@ class TargetPayCore
 
     protected $transactionId    = null;
     protected $paidStatus       = false;
-    protected $consumerInfo     = array();
+
+    protected $bankwireAmountDue = null;
+    protected $bankwireAmountPaid = null;
 
     protected $errorMessage     = null;
 
     protected $parameters       = array();    // Additional parameters
 
+    protected $moreInformation = null;
+    
     /**
      *  Constructor
      *  @param int $rtlo Layoutcode
      */
 
-    public function __construct($payMethod, $rtlo = false, $appId = false, $language = "nl", $testMode = false)
+    public function __construct($payMethod, $rtlo = false, $language = "nl", $testMode = false)
     {
         $payMethod = strtoupper($payMethod);
         if (in_array($payMethod, $this->paymentOptions)) {
@@ -102,29 +110,44 @@ class TargetPayCore
         $this->rtlo = (int) $rtlo;
         $this->testMode = ($testMode) ? '1' : '0';
         $this->language = strtolower(substr($language, 0, 2));
-        $this->appId = strtolower(preg_replace("/[^a-z\d_]/i", "", $appId));
     }
 
     /**
-     *  Get list with banks based on PayMethod setting (AUTO, IDE, etc.)
+     * Get list with banks based on PayMethod setting (AUTO, IDE, ...
+     * etc.)
      */
-
     public function getBankList()
     {
-        $url = "https://www.targetpay.com/api/idealplugins?banklist=".urlencode($this->payMethod);
-
+        $url = "https://transaction.digiwallet.nl/ideal/getissuers?ver=4&format=xml";
+        
         $xml = $this->httpRequest($url);
-        if (!$xml) {
+        $banks_array = array();
+        if (! $xml) {
             $banks_array["IDE0001"] = "Bankenlijst kon niet opgehaald worden bij TargetPay, controleer of curl werkt!";
             $banks_array["IDE0002"] = "  ";
         } else {
-            $banks_object = new \SimpleXMLElement($xml);
-            foreach ($banks_object->bank as $bank) {
-                $banks_array["{$bank->bank_id}"] = "{$bank->bank_name}";
+            $p = xml_parser_create();
+            xml_parse_into_struct($p, $xml, $banks_object, $index);
+            xml_parser_free($p);
+            foreach ($banks_object as $bank) {
+                if(empty($bank['attributes']['ID']))
+                    continue;
+                $banks_array[$bank['attributes']['ID']] = $bank['value'];
             }
         }
-
         return $banks_array;
+    }
+    
+    public function getCountryList()
+    {
+        return array(
+            'AT' => 'Austria',
+            'BE' => 'Belgium',
+            'CH' => 'Switzerland',
+            'DE' => 'Germany',
+            'IT' => 'Italy',
+            'NL' => 'Netherlands'
+        );
     }
 
     /**
@@ -150,11 +173,6 @@ class TargetPayCore
 
         if (!$this->amount) {
             $this->errorMessage = self::ERR_NO_AMOUNT;
-            return false;
-        }
-
-        if ($this->amount < $this->minimumAmounts[$this->payMethod]) {
-            $this->errorMessage = self::ERR_AMOUNT_TOO_LOW;
             return false;
         }
 
@@ -186,39 +204,66 @@ class TargetPayCore
         $this->returnUrl = str_replace("%payMethod%", $this->payMethod, $this->returnUrl);
         $this->cancelUrl = str_replace("%payMethod%", $this->payMethod, $this->cancelUrl);
         $this->reportUrl = str_replace("%payMethod%", $this->payMethod, $this->reportUrl);
-
-        $url =    "https://www.targetpay.com/api/idealplugins?".
-                "paymethod=".urlencode($this->payMethod)."&".
-                "app_id=".urlencode($this->appId)."&".
-                "rtlo=".urlencode($this->rtlo)."&".
-                "bank=".urlencode($this->bankId)."&".
-                "amount=".urlencode($this->amount)."&".
-                "description=".urlencode($this->description)."&".
-                "currency=".urlencode($this->currency)."&".
-                (($this->payMethod=="IDE") ? "ver=2&language=nl&" : "").
-                (($this->payMethod=="MRC") ? "lang=".urlencode($this->getLanguage(array("NL", "FR", "EN"), "NL"))."&" : "").
-                (($this->payMethod=="DEB") ? "type=1&country=".urlencode($this->countryId)."&lang=".urlencode($this->getLanguage(array("NL", "EN", "DE"), "DE"))."&" : "").
-                "userip=".urlencode($_SERVER["REMOTE_ADDR"])."&".
-                "domain=".urlencode($_SERVER["HTTP_HOST"])."&".
-                "returnurl=".urlencode($this->returnUrl)."&".
-                ((!empty($this->cancelUrl)) ? "cancelurl=".urlencode($this->cancelUrl)."&" : "").
-                "reporturl=".urlencode($this->reportUrl);
         
-        if(WP_DEBUG) {
-            error_log("\n-------------------------------------------------\n");
-            error_log($url);
+        $url = $this->startAPIs[$this->payMethod];
+        switch ($this->payMethod) {
+            case 'IDE':
+                $url .= '?ver=4' . '&bank=' . urlencode($this->bankId);
+                break;
+            case 'MRC':
+                $url .= '?ver=2' . '&lang=' . urlencode($this->getLanguage(array("NL", "FR", "EN"), "NL"));
+                break;
+            case 'DEB':
+                $url .= '?ver=2&type=1' . '&country='.urlencode($this->countryId). '&lang=' . urlencode($this->getLanguage(array("NL", "EN", "DE"), "DE"));
+                break;
+            case 'CC':
+                $url .= '?ver=3';
+                break;
+            case 'WAL':
+                $url .= '?ver=2';
+                break;
+            case 'PYP':
+            case 'BW':
+            case 'AFP':
+                $url .= '?ver=1';
+                break;
         }
-                
+        
+        $url .= "&rtlo=".urlencode($this->rtlo) .
+                "&amount=".urlencode($this->amount).
+                "&description=".urlencode($this->description).
+                (($this->payMethod != 'CC') ? "&test=".$this->testMode : "").//don't set testmode when start CC method
+                "&userip=".urlencode($_SERVER["REMOTE_ADDR"]).
+                "&domain=".urlencode($_SERVER["HTTP_HOST"]).
+                "&returnurl=".urlencode($this->returnUrl).
+                ((!empty($this->cancelUrl)) ? "&cancelurl=".urlencode($this->cancelUrl) : "").
+                "&reporturl=".urlencode($this->reportUrl).
+                "&app_id=".urlencode(self::APP_ID);
+
         if (is_array($this->parameters)) {
             foreach ($this->parameters as $k => $v) {
                 $url .= "&" . $k . "=" . urlencode($v);
             }
         }
-
+        
+        if(WP_DEBUG) {
+            error_log("\n-------------------------------------------------\n");
+            error_log($url);
+        }
+        
         $result = $this->httpRequest($url);
         if (substr($result, 0, 6)=="000000") {
             $result = substr($result, 7);
-            list($this->transactionId, $this->bankUrl) = explode("|", $result);
+            if ($this->payMethod == 'AFP') {
+                list($this->transactionId, $status, $this->bankUrl) = explode("|", $result);
+            } else {
+                list($this->transactionId, $this->bankUrl) = explode("|", $result);
+            }
+            
+            if ($this->payMethod == 'BW') {
+                $this->moreInformation = $result;
+                return true;
+            }
             return $this->bankUrl;
         } else {
             $this->errorMessage = "TargetPay antwoordde: ".$result." | TargetPay responded with: ".$result;
@@ -235,53 +280,63 @@ class TargetPayCore
      *
      */
 
-    public function checkPayment($transactionId)
+    public function checkPayment($transactionId, $params = [])
     {
-        if (!$this->rtlo) {
+        if (! $this->rtlo) {
             $this->errorMessage = self::ERR_NO_RTLO;
             return false;
         }
-
-        if (!$transactionId) {
+        if (! $transactionId) {
             $this->errorMessage = self::ERR_NO_TXID;
             return false;
         }
-
-        $url = $this->checkAPIs[$this->payMethod]."?".
-               "rtlo=".urlencode($this->rtlo)."&".
-               "trxid=".urlencode($transactionId)."&".
-               "once=0&".
-               "test=".(($this->testMode) ? "1" : "0");
-
-        $result = $this->httpRequest($url);
-
-        $_result = explode("|", $result);
-
-        $consumerBank = "";
-        $consumerName = "";
-        $consumerCity = "NOT PROVIDED";
-
-        if (count($_result)==4) {
-            list($resultCode, $consumerBank, $consumerName, $consumerCity) = $_result;
-        } else {
-            list($resultCode) = $_result;
+        $url = $this->checkAPIs[$this->payMethod] . "?" . 
+                "rtlo=" . urlencode($this->rtlo) . "&" . 
+                "trxid=" . urlencode($transactionId) . "&" . 
+                "test=" . (($this->testMode) ? "1" : "0") . 
+                "&once=0";
+        
+        if (! empty($params)) {
+            foreach ($params as $k => $v) {
+                $url .= "&" . $k . "=" . urlencode($v);
+            }
         }
-
-        $this->consumerInfo["bankaccount"] = "bank";
-        $this->consumerInfo["name"] = "customername";
-        $this->consumerInfo["city"] = "city";
-
-        if ($resultCode=="000000 OK") {
-            $this->consumerInfo["bankaccount"] = $consumerBank;
-            $this->consumerInfo["name"] = $consumerName;
-            $this->consumerInfo["city"] = ($consumerCity!="NOT PROVIDED") ? $consumerCity : "";
+        
+        return $this->parseCheckApi($this->httpRequest($url));
+    }
+    /*
+     * Bankwire: 000000 OK|750|795
+     *
+     * After pay:
+     * 000000 invoiceKey|invoicePaymentReference|status
+     * 000000 invoiceKey|invoicePaymentReference|status|enrichmentURL
+     * 000000 invoiceKey|invoicePaymentReference|status|rejectionReason|rejectionMessages
+     *
+     * sofort, creditcard, ideal, mistercash, paypal, paysafecard: 000000 OK
+     */
+    public function parseCheckApi($strResult)
+    {
+        $_result = explode("|", $strResult);
+        list($resultCode, $additionalParam1, $additionalParam2) = $_result;
+        if (trim($resultCode) == "000000 OK" && is_numeric($additionalParam1) && is_numeric($additionalParam2)) {
+            // BankWire response
             $this->paidStatus = true;
+            $this->bankwireAmountDue = (int)$additionalParam1;
+            $this->bankwireAmountPaid = (int)$additionalParam2;
+
             return true;
-        } else {
-            $this->paidStatus = false;
-            $this->errorMessage = $result;
-            return false;
         }
+        if (trim($resultCode) == "000000 OK" || (substr(trim($resultCode), 0, 6) == "000000" && trim($additionalParam2) == 'Captured')) {
+            // AfterPay response
+            $this->paidStatus = true;
+
+            return true;
+        }
+
+        $this->paidStatus = false;
+        $this->errorMessage = $strResult;
+
+        return false;
     }
 
     /**
@@ -340,37 +395,23 @@ class TargetPayCore
     {
         return $this->amount;
     }
-
+    
+    
+    
     public function setBankId($bankId)
     {
-        // Handle 'mixed' setting => therefore the payMethod must be 'AUTO'
-
-        if ($this->payMethod=="AUTO") {
-            $bankId = strtoupper($bankId);
-            if (substr($bankId, 0, 3)=="IDE") {
-                $this->payMethod = "IDE";
-                $this->bankId = substr($bankId, 3, 4);
-                return true;
-            } elseif ($bankId=="MRC") {
-                $this->payMethod = "MRC";
-                $this->bankId = false;
-                return true;
-            } elseif ($bankId=="CC") {
-                $this->payMethod = "CC";
-                $this->bankId = false;
-                return true;
-            } elseif (substr($bankId, 0, 3)=="DEB") {
-                $this->payMethod = "DEB";
-                $this->bankId = false;
-                $this->countryId = substr($bankId, 3, 2);
-                return true;
-            }
-        } else {
-            $this->bankId = substr($bankId, 0, 4);
-            return true;
-        }
+        $this->bankId = $bankId;
+        return true;
     }
-
+    
+    public function getTax($rate = null)
+    {
+        if(empty($rate)) return 4; // No tax
+        else if($rate>= 21) return 1;
+        else if($rate>= 6) return 2;
+        else return 3;
+    }
+    
     public function getBankId()
     {
         return $this->bankId;
@@ -380,12 +421,12 @@ class TargetPayCore
     {
         return $this->bankUrl;
     }
-
-    public function getConsumerInfo()
+    
+    public function getMoreInformation()
     {
-        return $this->consumerInfo;
+        return $this->moreInformation;
     }
-
+    
     public function setCountryId($countryId)
     {
         $this->countryId = strtolower(substr($countryId, 0, 2));
@@ -396,18 +437,6 @@ class TargetPayCore
     {
         return $this->countryId;
     }
-
-    public function setCurrency($currency)
-    {
-        $this->currency = strtoupper(substr($currency, 0, 3));
-        return true;
-    }
-
-    public function getCurrency()
-    {
-        return $this->currency;
-    }
-
 
     public function setDescription($description)
     {
@@ -422,12 +451,15 @@ class TargetPayCore
 
     public function getErrorMessage()
     {
-        if ($this->language=="nl") {
-            list($returnVal) = explode(" | ", $this->errorMessage, 2);
-        } elseif ($this->language=="en") {
-            list($discard, $returnVal) = explode(" | ", $this->errorMessage, 2);
-        } else {
-            $returnVal = $this->errorMessage;
+        $returnVal = '';
+        if (! empty($this->errorMessage)) {
+            if ($this->language == "nl" && strpos($this->errorMessage, " | ") !== false) {
+                list ($returnVal) = explode(" | ", $this->errorMessage, 2);
+            } elseif ($this->language == "en" && strpos($this->errorMessage, " | ") !== false) {
+                list ($discard, $returnVal) = explode(" | ", $this->errorMessage, 2);
+            } else {
+                $returnVal = $this->errorMessage;
+            }
         }
         return $returnVal;
     }
@@ -509,5 +541,123 @@ class TargetPayCore
     public function getTransactionId()
     {
         return $this->transactionId;
+    }
+
+    public function getBankwireAmountDue()
+    {
+        return $this->bankwireAmountDue;
+    }
+
+    public function getBankwireAmountPaid()
+    {
+        return $this->bankwireAmountPaid;
+    }
+
+    /**
+     *
+     * @param unknown $token
+     * @param unknown $dataRefund
+     * @return string|boolean
+     */
+    public function refund($token, $dataRefund)
+    {
+        $curl = curl_init();
+    
+        $data = http_build_query($dataRefund) . "\n";
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => "https://api.digiwallet.nl/refund",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $data,
+            CURLOPT_HTTPHEADER => array(
+                "authorization: Bearer " . $token,
+                "cache-control: no-cache"
+            )
+        ));
+    
+        $response = curl_exec($curl);
+    
+        curl_close($curl);
+    
+        $response = json_decode($response);
+        if(!empty($response->refundID) && $response->refundID > 0) {
+            return true;
+        }
+        else {
+            $this->errorMessage = (!empty($response->status) ? 'Error status: ' . $response->status . ' - ' : '') . $response->message;
+    
+            if (! empty($response->errors)) {
+                $arrError = [];
+                foreach ($response->errors as $errors) {
+                    foreach ($errors as $error) {
+                        $arrError[] = '- ' . $error;
+                    }
+                }
+                $errorMsg = implode("\n", $arrError);
+                $this->errorMessage .= ":\n" . $errorMsg;
+            }
+    
+            return false;
+        }
+    
+        return false;
+    }
+    
+    /**
+     * 
+     * @param unknown $token
+     * @param unknown $method
+     * @param unknown $trxid
+     * @return boolean
+     */
+    public function deleteRefund($token, $method, $trxid)
+    {
+        $curl = curl_init();
+        
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => "https://api.digiwallet.nl/refund/$method/$trxid",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "DELETE",
+            CURLOPT_POST => '',
+            CURLOPT_HTTPHEADER => array(
+                "authorization: Bearer " . $token,
+                "cache-control: no-cache"
+            )
+        ));
+        
+        $response = curl_exec($curl);
+        curl_close($curl);
+        
+        $response = json_decode($response);
+        if(!empty($response->status)) {
+            $this->errorMessage =  'Error status: ' . $response->status . ' - ' . $response->message;
+        }
+        
+        if (!empty($response->errors)) {
+            $arrError = [];
+            foreach ($response->errors as $errors) {
+                foreach ($errors as $error) {
+                    $arrError[] = '- ' . $error;
+                }
+            }
+            $errorMsg = implode("\n", $arrError);
+            $this->errorMessage .= ":\n" . $errorMsg;
+        }
+
+        if($this->errorMessage) {
+            return false;
+        }
+        else {
+            return true;
+        }
     }
 }

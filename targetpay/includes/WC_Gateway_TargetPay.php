@@ -37,6 +37,9 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
     public $language = 'nl';
     public $has_fields = true;
 
+    protected $defaultRtlo = "12345";
+    protected $defaultApiKey = "api-key";
+
     /**
      * Setup our Gateway's id, description and other values.
      */
@@ -131,7 +134,7 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
                 'title' => __('Digiwallet Outlet Identifier', 'targetpay'),
                 'type' => 'text',
                 'description' => __('Your Digiwallet Outlet Identifier, You can find this in your organization dashboard under Websites & Outlets on <a href="https://www.digiwallet.nl" target="_blank">https://www.digiwallet.nl</a>', 'targetpay'),
-                'default' => '', // Default TargetPay
+                'default' => $this->defaultRtlo, // Default TargetPay
                 'desc_tip' => false,
                 'placeholder' => 'Layoutcode'
             ),
@@ -139,7 +142,7 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
                 'title' => __('Digiwallet token', 'targetpay'), 
                 'type' => 'text', 
                 'description' => __('Obtain a token from <a href="http://digiwallet.nl" target="_blank">http://digiwallet.nl</a>', 'targetpay'), 
-                'default' => '',  // Default TargetPay
+                'default' => $this->defaultApiKey,  // Default TargetPay
                 'desc_tip' => false, 
                 'placeholder' => 'Token'), 
             'testmode' => array(

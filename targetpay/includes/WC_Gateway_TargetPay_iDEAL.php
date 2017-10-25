@@ -29,7 +29,7 @@ class WC_Gateway_TargetPay_iDEAL extends WC_Gateway_TargetPay
                 'title' => __('Digiwallet Outlet Identifier', 'targetpay'),
                 'type' => 'text',
                 'description' => __('Your Digiwallet Outlet Identifier, You can find this in your organization dashboard under Websites & Outlets on <a href="https://www.digiwallet.nl" target="_blank">https://www.digiwallet.nl</a>', 'targetpay'),
-                'default' => '', // Default TargetPay
+                'default' => $this->defaultRtlo, // Default TargetPay
                 'desc_tip' => false,
                 'placeholder' => 'Layoutcode'
             ),
@@ -37,7 +37,7 @@ class WC_Gateway_TargetPay_iDEAL extends WC_Gateway_TargetPay
                 'title' => __('Digiwallet token', 'targetpay'),
                 'type' => 'text',
                 'description' => __('Obtain a token from <a href="http://digiwallet.nl" target="_blank">http://digiwallet.nl</a>', 'targetpay'),
-                'default' => '', // Default TargetPay
+                'default' => $this->defaultApiKey, // Default TargetPay
                 'desc_tip' => false,
                 'placeholder' => 'Token'
             ),

@@ -4,7 +4,8 @@ class WC_Gateway_TargetPay_Sofort extends WC_Gateway_TargetPay
 {
     protected $payMethodId = "DEB";
     protected $payMethodName = "Sofort Banking";
-    protected $maxAmount = 10000;
+    protected $maxAmount = 5000;
+    protected $minAmount = 0.1;
     public $enabled = true;
     
     /**
@@ -20,19 +21,17 @@ class WC_Gateway_TargetPay_Sofort extends WC_Gateway_TargetPay
     /**
      * build method option for Sofort Banking method
      * {@inheritDoc}
-     * @see WC_Gateway_TargetPay::getTagetPayMethodOption()
+     * @see WC_Gateway_TargetPay::getTargetPayMethodOption()
      * @return string
      */
-    protected function getTagetPayMethodOption()
+    protected function getTargetPayMethodOption()
     {
         $html = '';
         $targetPay = new TargetPayCore($this->payMethodId);
-        $temp = $targetPay->getBankList();
+        $temp = $targetPay->getCountryList();
         $html .= '<select name="country" style="width:220px; padding: 2px; margin-left: 7px">';
         foreach ($temp as $key => $value) {
-            $countryId = str_replace('DEB', '', $key);
-            $countryName = str_replace('Sofort Banking: ', '', $value);
-            $html .= '<option value="'.$countryId.'">'.$countryName.'</option>';
+            $html .= '<option value="'.$key.'">'.$value.'</option>';
         }
         $html .= '</select>';
         return $html;

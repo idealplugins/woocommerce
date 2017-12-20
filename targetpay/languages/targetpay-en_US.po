@@ -1,0 +1,230 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: TargetPay for Woocommerce\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-09-06 03:20+0000\n"
+"PO-Revision-Date: 2017-09-06 03:22+0000\n"
+"Last-Translator: Hong Nguyen <kimhongn89@gmail.com>\n"
+"Language-Team: English (United States)\n"
+"Language: en-US\n"
+"Plural-Forms: nplurals=2; plural=n != 1\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco - https://localise.biz/"
+
+#: includes/WC_Gateway_TargetPay.php:120
+#: includes/WC_Gateway_TargetPay_iDEAL.php:22
+msgid "Enable / Disable"
+msgstr "Enable / Disable"
+
+#: includes/WC_Gateway_TargetPay.php:121
+#: includes/WC_Gateway_TargetPay_iDEAL.php:23
+msgid "Enable this payment gateway"
+msgstr "Enable this payment gateway"
+
+#: includes/WC_Gateway_TargetPay.php:127
+#: includes/WC_Gateway_TargetPay_iDEAL.php:29
+msgid "Digiwallet Outlet Identifier"
+msgstr "Digiwallet Outlet Identifier"
+
+#: includes/WC_Gateway_TargetPay.php:129
+#: includes/WC_Gateway_TargetPay_iDEAL.php:31
+msgid ""
+"Your Digiwallet Outlet Identifier, You can find this in your organization "
+"dashboard under Websites & Outlets on <a href=\"https://www.digiwallet.nl\" "
+"target=\"_blank\">https://www.digiwallet.nl</a>"
+msgstr ""
+"Your Digiwallet Outlet Identifier, You can find this in your organization "
+"dashboard under Websites & Outlets on <a href=\"https://www.digiwallet.nl\" "
+"target=\"_blank\">https://www.digiwallet.nl</a>"
+
+#: includes/WC_Gateway_TargetPay.php:135
+#: includes/WC_Gateway_TargetPay_iDEAL.php:37
+msgid "Digiwallet token"
+msgstr "Digiwallet token"
+
+#: includes/WC_Gateway_TargetPay.php:137
+#: includes/WC_Gateway_TargetPay_iDEAL.php:39
+msgid ""
+"Obtain a token from <a href=\"http://digiwallet.nl\" target=\"_blank\">http:"
+"//digiwallet.nl</a>"
+msgstr ""
+"Obtain a token from <a href=\"http://digiwallet.nl\" target=\"_blank\">http:"
+"//digiwallet.nl</a>"
+
+#: includes/WC_Gateway_TargetPay.php:143
+#: includes/WC_Gateway_TargetPay_iDEAL.php:45
+msgid "Test mode"
+msgstr "Test mode"
+
+#: includes/WC_Gateway_TargetPay.php:145
+#: includes/WC_Gateway_TargetPay_iDEAL.php:47
+msgid "Enable testmode"
+msgstr "Enable testmode"
+
+#: includes/WC_Gateway_TargetPay.php:147
+#: includes/WC_Gateway_TargetPay_iDEAL.php:49
+msgid ""
+"Enable testmode, all orders will then be accepted even if unpaid/canceled."
+msgstr ""
+"Enable testmode, all orders will then be accepted even if unpaid/canceled."
+
+#: includes/WC_Gateway_TargetPay.php:150
+#: includes/WC_Gateway_TargetPay_iDEAL.php:59
+msgid "Status after payment is received"
+msgstr "Status after payment is received"
+
+#: includes/WC_Gateway_TargetPay.php:153
+#: includes/WC_Gateway_TargetPay_iDEAL.php:62
+msgid "Choose whether you wish to set payment status after received."
+msgstr "Choose whether you wish to set payment status after received."
+
+#: includes/WC_Gateway_TargetPay.php:177
+#, php-format
+msgid "The total amount is lower than the minimum of %s euros for %s"
+msgstr "The total amount is lower than the minimum of %s euros for %s"
+
+#: includes/WC_Gateway_TargetPay.php:185
+#, php-format
+msgid "The total amount is higher than the maximum of %s euros for %s"
+msgstr "The total amount is higher than the maximum of %s euros for %s"
+
+#: includes/WC_Gateway_TargetPay.php:393
+msgid "The payment is under processing"
+msgstr "The payment is under processing"
+
+#: includes/WC_Gateway_TargetPay.php:447
+msgid "TargetPay does not support your store currency."
+msgstr "TargetPay does not support your store currency."
+
+#: includes/WC_Gateway_TargetPay.php:517
+msgid "WARNING: One database column is missing"
+msgid_plural "WARNING: Multiple database columns are missing"
+msgstr[0] "WARNING: One database column is missing"
+msgstr[1] "WARNING: Multiple database columns are missing"
+
+#: includes/WC_Gateway_TargetPay.php:519
+#, php-format
+msgid ""
+"<p>We want to inform you that one table column %s is missing in the plugin "
+"table. The plugin will <strong>not</strong> work properly.</p>"
+msgstr ""
+"<p>We want to inform you that one table column %s is missing in the plugin "
+"table. The plugin will <strong>not</strong> work properly.</p>"
+
+#: includes/WC_Gateway_TargetPay.php:521
+msgid ""
+"</p>We want to inform you that multiple table columns are missing in the "
+"plugin table. The plugin will <strong>not</strong> work properly. Below an "
+"overview of the missing columns</p>"
+msgstr ""
+"</p>We want to inform you that multiple table columns are missing in the "
+"plugin table. The plugin will <strong>not</strong> work properly. Below an "
+"overview of the missing columns</p>"
+
+#: includes/WC_Gateway_TargetPay.php:533
+#, php-format
+msgid "Table %s doesn't exists!!!"
+msgstr "Table %s doesn't exists!!!"
+
+#: includes/WC_Gateway_TargetPay.php:551
+#: includes/WC_Gateway_TargetPay_iDEAL.php:65
+msgid "Completed"
+msgstr "Completed"
+
+#: includes/WC_Gateway_TargetPay.php:552
+#: includes/WC_Gateway_TargetPay_iDEAL.php:66
+msgid "Processing"
+msgstr "Processing"
+
+#: includes/WC_Gateway_TargetPay_iDEAL.php:52
+msgid "iDEAL bank view"
+msgstr "iDEAL bank view"
+
+#: includes/WC_Gateway_TargetPay_iDEAL.php:54
+msgid "With radiobuttons"
+msgstr "With radiobuttons"
+
+#: includes/WC_Gateway_TargetPay_iDEAL.php:56
+msgid ""
+"If selected, the banklist will be formed with radiobuttons instead of a "
+"dropdownbox."
+msgstr ""
+"If selected, the banklist will be formed with radiobuttons instead of a "
+"dropdownbox."
+
+#: includes/WC_Gateway_TargetPay_Bankwire.php:93
+msgid "Thank you for ordering in our webshop!"
+msgstr "Thank you for ordering in our webshop!"
+
+#: includes/WC_Gateway_TargetPay_Bankwire.php:94
+msgid ""
+"You will receive your order as soon as we receive payment from the bank."
+msgstr ""
+"You will receive your order as soon as we receive payment from the bank."
+
+#: includes/WC_Gateway_TargetPay_Bankwire.php:95
+#, php-format
+msgid ""
+"Would you be so friendly to transfer the total amount of €%s to the "
+"bankaccount <b>%s</b> in name of %s * ?"
+msgstr ""
+"Would you be so friendly to transfer the total amount of €%s to the "
+"bankaccount <b>%s</b> in name of %s * ?"
+
+#: includes/WC_Gateway_TargetPay_Bankwire.php:97
+#, php-format
+msgid ""
+"State the payment feature <b>%s</b>, this way the payment can be "
+"automatically processed."
+msgstr ""
+"State the payment feature <b>%s</b>, this way the payment can be "
+"automatically processed."
+
+#: includes/WC_Gateway_TargetPay_Bankwire.php:98
+#, php-format
+msgid "As soon as this happens you shall receive a confirmation mail on %s."
+msgstr "As soon as this happens you shall receive a confirmation mail on %s."
+
+#: includes/WC_Gateway_TargetPay_Bankwire.php:100
+#, php-format
+msgid ""
+"If it is necessary for payments abroad, then the BIC code from the bank %s "
+"and the name of the bank is %s."
+msgstr ""
+"If it is necessary for payments abroad, then the BIC code from the bank %s "
+"and the name of the bank is %s."
+
+#: includes/WC_Gateway_TargetPay_Bankwire.php:101
+msgid ""
+"<i>* Payment for our webstore is processed by TargetMedia. TargetMedia is "
+"certified as a Collecting Payment Service Provider by Currence. This means "
+"we set the highest security standards when is comes to security of payment "
+"for you as a customer and us as a webshop.</i>"
+msgstr ""
+"<i>* Payment for our webstore is processed by TargetMedia. TargetMedia is "
+"certified as a Collecting Payment Service Provider by Currence. This means "
+"we set the highest security standards when is comes to security of payment "
+"for you as a customer and us as a webshop.</i>"
+
+#. Name of the plugin
+msgid "TargetPay for Woocommerce"
+msgstr "TargetPay for Woocommerce"
+
+#. Description of the plugin
+msgid ""
+"Activates iDEAL, Bancontact, Sofort Banking, Visa / Mastercard credit cards "
+"Paysafecard, Afterpay, Bank Transfer and Paypal in WoCommerce"
+msgstr ""
+"Activates iDEAL, Bancontact, Sofort Banking, Visa / Mastercard credit cards "
+"Paysafecard, Afterpay, Bank Transfer and Paypal in WoCommerce"
+
+#. URI of the plugin
+#. Author URI of the plugin
+msgid "https://www.digiwallet.nl"
+msgstr "https://www.digiwallet.nl"
+
+#. Author of the plugin
+msgid "DigiWallet.nl"
+msgstr "DigiWallet.nl"

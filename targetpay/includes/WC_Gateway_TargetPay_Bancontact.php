@@ -18,6 +18,4 @@ class WC_Gateway_TargetPay_Bancontact extends WC_Gateway_TargetPay
     {
         return 'Bancontact';
     }
-
-
 } // End Class

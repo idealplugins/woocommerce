@@ -24,7 +24,7 @@ class TargetPayCore
 {
     // Constants
 
-    const APP_ID = 'dw_woocommerce3.x_5.0.1';
+    const APP_ID = 'dw_woocommerce3.x_5.0.2';
 
     const MIN_AMOUNT            = 84;
 
@@ -232,7 +232,7 @@ class TargetPayCore
         $url .= "&rtlo=".urlencode($this->rtlo) .
                 "&amount=".urlencode($this->amount).
                 "&description=".urlencode($this->description).
-                (($this->payMethod != 'CC') ? "&test=".$this->testMode : "").//don't set testmode when start CC method
+                "&test=".$this->testMode.
                 "&userip=".urlencode($_SERVER["REMOTE_ADDR"]).
                 "&domain=".urlencode($_SERVER["HTTP_HOST"]).
                 "&returnurl=".urlencode($this->returnUrl).
@@ -252,7 +252,8 @@ class TargetPayCore
         }
         
         $result = $this->httpRequest($url);
-        if (substr($result, 0, 6)=="000000") {
+        $result_code = substr($result, 0, 6);
+        if (($result_code == "000000") || ($result_code == "000001" && $this->payMethod == "CC")) {
             $result = substr($result, 7);
             if ($this->payMethod == 'AFP') {
                 list($this->transactionId, $status, $this->bankUrl) = explode("|", $result);
@@ -317,7 +318,7 @@ class TargetPayCore
     public function parseCheckApi($strResult)
     {
         $_result = explode("|", $strResult);
-        list($resultCode, $additionalParam1, $additionalParam2) = $_result;
+        @list($resultCode, $additionalParam1, $additionalParam2) = $_result;
         if (trim($resultCode) == "000000 OK" && is_numeric($additionalParam1) && is_numeric($additionalParam2)) {
             // BankWire response
             $this->paidStatus = true;
@@ -326,7 +327,7 @@ class TargetPayCore
 
             return true;
         }
-        if (trim($resultCode) == "000000 OK" || (substr(trim($resultCode), 0, 6) == "000000" && trim($additionalParam2) == 'Captured')) {
+        if (trim($resultCode) == "000000 OK" || ($resultCode == "000001 OK" && $this->payMethod == "CC") || (substr(trim($resultCode), 0, 6) == "000000" && trim($additionalParam2) == 'Captured')) {
             // AfterPay response
             $this->paidStatus = true;
 

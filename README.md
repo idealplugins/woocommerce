@@ -34,12 +34,12 @@ We recommend cloning the repository so you can easily get updates.
 
 ### 3. Setting up
 
-Check out the specific installation instructions and tips on https://www.idealplugins.nl/woocommerce#install
+Check out the specific installation instructions and tips on https://www.idealplugins.nl/woocommerce2.0#install
 
 ## Upgrading from an older version of this plugin
 
-Since we did a complete rebuild of the plugin it is recommended to do a clean install of the plugin when comming from a version without a dw prefix.
+Since we did a complete rebuild of the plugin it is recommended to do a clean install of the plugin when comming from a version without a DW prefix.
 
 ## Troubleshooting
 
-Please see the FAQ on https://www.idealplugins.nl/woocommerce#help
+Please see the FAQ on https://www.idealplugins.nl/woocommerce2.0#help

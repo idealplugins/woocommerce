@@ -34,7 +34,7 @@ We recommend cloning the repository so you can easily get updates.
 
 ### 3. Setting up
 
-Check out the specific installation instructions and tips on https://www.idealplugins.nl/woocommerce2.0#install
+Check out the specific installation instructions and tips on https://www.idealplugins.nl/plugin/woocommerce2.0#install
 
 ## Upgrading from an older version of this plugin
 
@@ -42,4 +42,4 @@ Since we did a complete rebuild of the plugin it is recommended to do a clean in
 
 ## Troubleshooting
 
-Please see the FAQ on https://www.idealplugins.nl/woocommerce2.0#help
+Please see the FAQ on https://www.idealplugins.nl/plugin/woocommerce2.0#help

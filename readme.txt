@@ -1,8 +1,8 @@
 === Plugin Name ===
 Contributors: idealplugins
 Tags: targetpay, ideal, bancontact, sofort banking, visa,mastercard,creditcard,paysafecard
-Requires at least: 3.0.1
-Tested up to: 4.7.3
+Requires at least: 4.9.0
+Tested up to: 4.9.8
 Stable tag: Master
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -29,6 +29,8 @@ This plugins offers payment options for the following payment methods:
 * Sofort Banking
 * Visa/Mastercard creditcards
 * Paysafecard
+* Paypal
+* Bankwire
 
 When registering for an account, use our promotional code YM3R2A for a special discount on the transaction costs. Currently iDEAL is offered for 44 eurocent per transaction, all-inclusive without monthly costs or setup fees.
 

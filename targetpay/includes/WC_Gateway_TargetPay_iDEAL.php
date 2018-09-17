@@ -41,13 +41,6 @@ class WC_Gateway_TargetPay_iDEAL extends WC_Gateway_TargetPay
                 'desc_tip' => false,
                 'placeholder' => 'Token'
             ),
-            'testmode' => array(
-                'title' => __('Test mode', 'targetpay'),
-                'type' => 'checkbox',
-                'label' => __('Enable testmode', 'targetpay'),
-                'default' => 'no',
-                'description' => __('Enable testmode, all orders will then be accepted even if unpaid/canceled.', 'targetpay')
-            ),
             'idealView' => array(
                 'title' => __('iDEAL bank view', 'targetpay'),
                 'type' => 'checkbox',

@@ -63,39 +63,33 @@ class WC_Gateway_TargetPay_Afterpay extends WC_Gateway_TargetPay
             $billingCountry = (strtoupper($order->billing_country) == 'BE' ? 'BEL' : 'NLD');
             $shippingCountry = (strtoupper($shipping_only ? $order->shipping_country : $order->billing_country) == 'BE' ? 'BEL' : 'NLD');
             
-            $streetParts = self::breakDownStreet("");
-            if(empty($order->billing_address_2)){
-                $streetParts = self::breakDownStreet($order->billing_address_1);
-            }
-            
+            $streetParts = self::breakDownStreet($order->billing_address_1);
             $targetPay->bindParam('billingstreet', empty($streetParts['street']) ? $order->billing_address_1 : $streetParts['street']);
-            $targetPay->bindParam('billinghousenumber', empty($streetParts['houseNumber'].$streetParts['houseNumberAdd']) ? $order->billing_address_2 : $streetParts['houseNumber'].$streetParts['houseNumberAdd']);
+            $targetPay->bindParam('billinghousenumber', empty($streetParts['houseNumber'].$streetParts['houseNumberAdd']) ? $order->billing_address_1 : $streetParts['houseNumber'] . ' ' .$streetParts['houseNumberAdd']);
             $targetPay->bindParam('billingpostalcode', $order->billing_postcode);
             $targetPay->bindParam('billingcity', $order->billing_city);
             $targetPay->bindParam('billingpersonemail', $order->billing_email);
             $targetPay->bindParam('billingpersoninitials', "");
             $targetPay->bindParam('billingpersongender', "");
             $targetPay->bindParam('billingpersonbirthdate', "");
+            $targetPay->bindParam('billingpersonfirstname', $order->billing_first_name);
             $targetPay->bindParam('billingpersonsurname', $order->billing_last_name);
             $targetPay->bindParam('billingcountrycode', $billingCountry);
             $targetPay->bindParam('billingpersonlanguagecode', $billingCountry);
             $targetPay->bindParam('billingpersonphonenumber', self::format_phone($billingCountry, $order->billing_phone));
             
-            $streetParts = self::breakDownStreet("");
             $address_result = $shipping_only ? $order->shipping_address_1 : $order->billing_address_1;
-            $address_number_house = $shipping_only ? $order->shipping_address_2 : $order->billing_address_2;
-            if(empty($address_number_house)){
-                $streetParts = self::breakDownStreet($address_result);
-            }
+            $$streetParts = self::breakDownStreet($address_result);
             
             $targetPay->bindParam('shippingstreet', empty($streetParts['street']) ? $address_result : $streetParts['street']);
-            $targetPay->bindParam('shippinghousenumber', empty($streetParts['houseNumber'].$streetParts['houseNumberAdd']) ? $address_number_house : $streetParts['houseNumber'].$streetParts['houseNumberAdd']);
+            $targetPay->bindParam('shippinghousenumber', empty($streetParts['houseNumber'].$streetParts['houseNumberAdd']) ? $address_result : $streetParts['houseNumber'] . ' ' . $streetParts['houseNumberAdd']);
             $targetPay->bindParam('shippingpostalcode', $shipping_only ? $order->shipping_postcode : $order->billing_postcode);
             $targetPay->bindParam('shippingcity', $shipping_only ? $order->shipping_city : $order->billing_city);
             $targetPay->bindParam('shippingpersonemail', $shipping_only ? $order->shipping_email : $order->billing_email);
             $targetPay->bindParam('shippingpersoninitials', "");
             $targetPay->bindParam('shippingpersongender', "");
             $targetPay->bindParam('shippingpersonbirthdate', "");
+            $targetPay->bindParam('shippingpersonfirstname', $shipping_only ? $order->shipping_first_name : $order->billing_first_name);
             $targetPay->bindParam('shippingpersonsurname', $shipping_only ? $order->shipping_last_name : $order->billing_last_name);
             $targetPay->bindParam('shippingcountrycode', $shippingCountry);
             $targetPay->bindParam('shippingpersonlanguagecode', $shippingCountry);
@@ -112,39 +106,34 @@ class WC_Gateway_TargetPay_Afterpay extends WC_Gateway_TargetPay
             $billingCountry = (strtoupper($order->get_billing_country()) == 'BE' ? 'BEL' : 'NLD');
             $shippingCountry = (strtoupper($shipping_only ? $order->get_shipping_country() : $order->get_billing_country()) == 'BE' ? 'BEL' : 'NLD');
             
-            $streetParts = self::breakDownStreet("");
-            if(empty($order->get_billing_address_2())){
-                $streetParts = self::breakDownStreet($order->get_billing_address_1());
-            }
+            $streetParts = self::breakDownStreet($order->get_billing_address_1());
             
             $targetPay->bindParam('billingstreet', empty($streetParts['street']) ? $order->get_billing_address_1() : $streetParts['street']);
-            $targetPay->bindParam('billinghousenumber', empty($streetParts['houseNumber'].$streetParts['houseNumberAdd']) ? $order->get_billing_address_2() : $streetParts['houseNumber'].$streetParts['houseNumberAdd']);
+            $targetPay->bindParam('billinghousenumber', empty($streetParts['houseNumber'].$streetParts['houseNumberAdd']) ? $order->get_billing_address_1() : $streetParts['houseNumber'].$streetParts['houseNumberAdd']);
             $targetPay->bindParam('billingpostalcode', $order->get_billing_postcode());
             $targetPay->bindParam('billingcity', $order->get_billing_city());
             $targetPay->bindParam('billingpersonemail', $order->get_billing_email());
             $targetPay->bindParam('billingpersoninitials', "");
             $targetPay->bindParam('billingpersongender', "");
             $targetPay->bindParam('billingpersonbirthdate', "");
+            $targetPay->bindParam('billingpersonfirstname', $order->get_billing_first_name());
             $targetPay->bindParam('billingpersonsurname', $order->get_billing_last_name());
             $targetPay->bindParam('billingcountrycode', $billingCountry);
             $targetPay->bindParam('billingpersonlanguagecode', $billingCountry);
             $targetPay->bindParam('billingpersonphonenumber', self::format_phone($billingCountry, $order->get_billing_phone()));
             
-            $streetParts = self::breakDownStreet("");
             $address_result = $shipping_only ? $order->get_shipping_address_1() : $order->get_billing_address_1();
-            $address_number_house = $shipping_only ? $order->get_shipping_address_2() : $order->get_billing_address_2();
-            if(empty($address_number_house)){
-                $streetParts = self::breakDownStreet($address_result);
-            }
+            $streetParts = self::breakDownStreet($address_result);
             
             $targetPay->bindParam('shippingstreet', empty($streetParts['street']) ? $address_result : $streetParts['street']);
-            $targetPay->bindParam('shippinghousenumber', empty($streetParts['houseNumber'].$streetParts['houseNumberAdd']) ? $address_number_house : $streetParts['houseNumber'].$streetParts['houseNumberAdd']);
+            $targetPay->bindParam('shippinghousenumber', empty($streetParts['houseNumber'].$streetParts['houseNumberAdd']) ? $address_result : $streetParts['houseNumber'].$streetParts['houseNumberAdd']);
             $targetPay->bindParam('shippingpostalcode', $shipping_only ? $order->get_shipping_postcode() : $order->get_billing_postcode());
             $targetPay->bindParam('shippingcity', $shipping_only ? $order->get_shipping_city() : $order->get_billing_city());
             $targetPay->bindParam('shippingpersonemail', $order->get_billing_email());
             $targetPay->bindParam('shippingpersoninitials', "");
             $targetPay->bindParam('shippingpersongender', "");
             $targetPay->bindParam('shippingpersonbirthdate', "");
+            $targetPay->bindParam('shippingpersonfirstname', $shipping_only ? $order->get_shipping_first_name() : $order->get_billing_first_name());
             $targetPay->bindParam('shippingpersonsurname', $shipping_only ? $order->get_shipping_last_name() : $order->get_billing_last_name());
             $targetPay->bindParam('shippingcountrycode', $shippingCountry);
             $targetPay->bindParam('shippingpersonlanguagecode', $shippingCountry);
@@ -246,15 +235,26 @@ class WC_Gateway_TargetPay_Afterpay extends WC_Gateway_TargetPay
     
     private static function breakDownStreet($street)
     {
-        $out = [];
+        $out = [
+            'street' => null,
+            'houseNumber' => null,
+            'houseNumberAdd' => null,
+        ];
         $addressResult = null;
         preg_match("/(?P<address>\D+) (?P<number>\d+) (?P<numberAdd>.*)/", $street, $addressResult);
-        if(!$addressResult) {
+        if (! $addressResult) {
             preg_match("/(?P<address>\D+) (?P<number>\d+)/", $street, $addressResult);
         }
+        if (empty($addressResult)) {
+            $out['street'] = $street;
+            
+            return $out;
+        }
+        
         $out['street'] = array_key_exists('address', $addressResult) ? $addressResult['address'] : null;
         $out['houseNumber'] = array_key_exists('number', $addressResult) ? $addressResult['number'] : null;
         $out['houseNumberAdd'] = array_key_exists('numberAdd', $addressResult) ? trim(strtoupper($addressResult['numberAdd'])) : null;
+        
         return $out;
     }
 } // End Class

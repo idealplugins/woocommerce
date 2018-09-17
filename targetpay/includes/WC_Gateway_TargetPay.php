@@ -73,6 +73,8 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
         // The Title shown on the top of the Payment Gateways Page next to all the other Payment Gateways
         $this->method_title = $this->payMethodName;
         
+        $this->method_description = __('You can enable test-mode for your outlet from your DigiWallet Organization Dashboard to test your payments through the DigiWallet Test Panel.');
+        
         // The title to be used for the vertical tabs that can be ordered top to bottom
         $this->title = $this->payMethodName;
         
@@ -144,13 +146,7 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
                 'description' => __('Obtain a token from <a href="http://digiwallet.nl" target="_blank">http://digiwallet.nl</a>', 'targetpay'), 
                 'default' => $this->defaultApiKey,  // Default TargetPay
                 'desc_tip' => false, 
-                'placeholder' => 'Token'), 
-            'testmode' => array(
-                'title' => __('Test mode', 'targetpay'), 
-                'type' => 'checkbox', 
-                'label' => __('Enable testmode', 'targetpay'), 
-                'default' => 'no', 
-                'description' => __('Enable testmode, all orders will then be accepted even if unpaid/canceled.', 'targetpay')), 
+                'placeholder' => 'Token'),
             'orderStatus' => array(
                 'title' => __('Status after payment is received', 'targetpay'), 
                 'class' => 'tp-select', 
@@ -192,7 +188,7 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
             return false;
         }
         
-        $targetPay = new TargetPayCore($this->payMethodId, $this->rtlo, $this->language, ($this->testmode == 'yes') ? "1" : "0");
+        $targetPay = new TargetPayCore($this->payMethodId, $this->rtlo, $this->language);
         $targetPay->setAmount(round($amount * 100));
         $targetPay->setDescription('Order ' . $order->get_order_number()); // $order->id
                                                                            // set return & report & cancel url
@@ -222,7 +218,7 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
                 'rtlo' => $this->rtlo, 
                 'paymethod' => $this->payMethodId, 
                 'transaction_id' => $targetPay->getTransactionId(), 
-                'testmode' => $this->testmode, 
+                'testmode' => 0, 
                 'more' => $targetPay->getMoreInformation()), array(
                 '%s', 
                 '%d', 
@@ -327,9 +323,9 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
     
     public function checkOrder(WC_Order $order, $extOrder)
     {
-        $targetPay = new TargetPayCore($extOrder->paymethod, $extOrder->rtlo, $this->language, ($this->testmode == 'yes') ? 1 : 0);
+        $targetPay = new TargetPayCore($extOrder->paymethod, $extOrder->rtlo, $this->language);
         $result = $targetPay->checkPayment($extOrder->transaction_id, $this->getAdditionParametersReport($extOrder));
-        if ($result || $this->testmode == 'yes') {
+        if ($result) {
             if ($extOrder->paymethod == 'BW' && $targetPay->getBankwireAmountPaid() < $targetPay->getBankwireAmountDue()) {
                 $order->update_status(self::WOO_ORDER_STATUS_ON_HOLD,
                     "Method $order->payment_method_title(Transaction ID $extOrder->transaction_id): " .
@@ -346,6 +342,7 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
                 $order->save();
                 $this->updateTargetPayTable($order, array('message' => null));
             }
+            do_action( 'woocommerce_payment_complete', $order->get_id());
         } else {
             $this->updateTargetPayTable($order, array('message' => $targetPay->getErrorMessage()));
             $order->update_status(self::WOO_ORDER_STATUS_FAILED, "Method $order->payment_method_title(Transaction ID $extOrder->transaction_id): ");
@@ -396,10 +393,6 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
     {
         global $woocommerce;
         global $wpdb;
-        
-        if ($this->testmode == 'yes') {
-            return wp_redirect($this->get_return_url($order));
-        }
         
         switch ($order->status) {
             case self::WOO_ORDER_STATUS_PENDING:
@@ -486,12 +479,12 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
                     <img src="' . plugins_url('../', __FILE__) . '/assets/images/' . $this->payMethodId . '_60.png">
                     </div>
                 </div>';
+            $template .= '<div class="inline description"><p><strong>' . $this->method_description . '</strong></p></div>';
             $template .= $settings;
             $template .= '</table>';
         } else {
             $template = '<div class="inline error"><p><strong>' . __('Gateway Disabled', 'woocommerce') . '</strong>: ' . $this->enabledErrorMessage . '</p></div>';
         }
-        
         echo $template;
     }
 
@@ -638,7 +631,7 @@ abstract class WC_Gateway_TargetPay extends WC_Payment_Gateway
         $dataRefund = array(
             'paymethodID' => $extOrder->paymethod, 
             'transactionID' => $order->get_transaction_id(), 
-            'amount' => intval(floatval($amount)), 
+            'amount' => intval(floatval($amount) * 100), 
             'description' => $reason, 
             'internalNote' => 'Internal note - OrderId: ' . $order_id . ', Amount: ' . $amount . ', Customer Email: ' . $order->get_billing_email(), 
             'consumerName' => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name());

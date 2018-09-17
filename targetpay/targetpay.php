@@ -5,14 +5,14 @@
  *
  * @author DigiWallet.nl <techsupport@targetmedia.nl>
  * @license http://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @copyright Copyright (C) 2017 Idealplugins.nl
+ * @copyright Copyright (C) 2018 e-plugins.nl
  *
  * Plugin Name: DigiWallet for WooCommerce
  * Plugin URI: https://www.digiwallet.nl
- * Description: Activates iDEAL, Bancontact, Sofort Banking, Visa / Mastercard credit cards, PaysafeCard, AfterPay, BankWire, PayPal and Refunds in WoCommerce
+ * Description: Activates iDEAL, Bancontact, Sofort Banking, Visa / Mastercard credit cards, PaysafeCard, AfterPay, BankWire, PayPal and Refunds in WooCommerce
  * Author: DigiWallet.nl
  * Author URI: https://www.digiwallet.nl
- * Version: 5.0.1 - 23-10-2017 BankWire partial behavior and various fixes
+ * Version: 5.0.3 - 10-09-2018 BankWire behavior and various fixes
  */
 define('TARGETPAY_OLD_TABLE_NAME', 'woocommerce_TargetPay_Sales27052016');
 define('TARGETPAY_TABLE_NAME', 'woocommerce_targetpay');

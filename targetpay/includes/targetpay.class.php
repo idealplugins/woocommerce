@@ -2,10 +2,10 @@
 
 /**
  * @file     Provides support for TargetPay iDEAL, Bancontact and Sofort Banking
- * @author   Yellow Melon B.V.
- * @url      http://www.idealplugins.nl
- * @release  29-09-2014
- * @ver      2.5
+ * @author   digiwallet.nl
+ * @url      http://www.e-plugins.nl
+ * @release  3-09-2018
+ * @ver      5.0.3
  *
  * Changes:
  *
@@ -24,7 +24,7 @@ class TargetPayCore
 {
     // Constants
 
-    const APP_ID = 'dw_woocommerce3.x_5.0.2';
+    const APP_ID = 'dw_woocommerce3.x_5.0.3';
 
     const MIN_AMOUNT            = 84;
 
@@ -67,7 +67,6 @@ class TargetPayCore
     // Variables
 
     protected $rtlo             = null;
-    protected $testMode         = false;
 
     protected $language         = "nl";
     protected $payMethod        = null;
@@ -99,7 +98,7 @@ class TargetPayCore
      *  @param int $rtlo Layoutcode
      */
 
-    public function __construct($payMethod, $rtlo = false, $language = "nl", $testMode = false)
+    public function __construct($payMethod, $rtlo = false, $language = "nl")
     {
         $payMethod = strtoupper($payMethod);
         if (in_array($payMethod, $this->paymentOptions)) {
@@ -108,7 +107,6 @@ class TargetPayCore
             return false;
         }
         $this->rtlo = (int) $rtlo;
-        $this->testMode = ($testMode) ? '1' : '0';
         $this->language = strtolower(substr($language, 0, 2));
     }
 
@@ -232,7 +230,6 @@ class TargetPayCore
         $url .= "&rtlo=".urlencode($this->rtlo) .
                 "&amount=".urlencode($this->amount).
                 "&description=".urlencode($this->description).
-                "&test=".$this->testMode.
                 "&userip=".urlencode($_SERVER["REMOTE_ADDR"]).
                 "&domain=".urlencode($_SERVER["HTTP_HOST"]).
                 "&returnurl=".urlencode($this->returnUrl).
@@ -277,7 +274,7 @@ class TargetPayCore
      *  @param string  $payMethodId Payment method's see above
      *  @param string  $transactionId Transaction ID to check
      *
-     *  Returns true if payment successfull (or testmode) and false if not
+     *  Returns true if payment successfull and false if not
      *
      */
 
@@ -294,7 +291,6 @@ class TargetPayCore
         $url = $this->checkAPIs[$this->payMethod] . "?" . 
                 "rtlo=" . urlencode($this->rtlo) . "&" . 
                 "trxid=" . urlencode($transactionId) . "&" . 
-                "test=" . (($this->testMode) ? "1" : "0") . 
                 "&once=0";
         
         if (! empty($params)) {
@@ -318,7 +314,7 @@ class TargetPayCore
     public function parseCheckApi($strResult)
     {
         $_result = explode("|", $strResult);
-        @list($resultCode, $additionalParam1, $additionalParam2) = $_result;
+        list($resultCode, $additionalParam1, $additionalParam2) = $_result;
         if (trim($resultCode) == "000000 OK" && is_numeric($additionalParam1) && is_numeric($additionalParam2)) {
             // BankWire response
             $this->paidStatus = true;
